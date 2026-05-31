@@ -1,0 +1,64 @@
+import type { FormatResult, Language } from "../types";
+import { aiComplete, aiCompleteStream } from "./client";
+import { buildFormatPrompt, stripFence } from "./prompts";
+import type { AiProvider, AiTask } from "./types";
+
+export type { AiProvider, AiTask, ProviderKind } from "./types";
+export {
+  PROVIDER_PRESETS,
+  presetById,
+  isLocalEndpoint,
+  DEFAULT_PROVIDER_KEYS,
+} from "./presets";
+export { AI_TASKS } from "./prompts";
+export { aiComplete, aiCompleteStream, aiPrewarm } from "./client";
+export { stripFence } from "./prompts";
+
+/**
+ * Format via AI. Returns a FormatResult shaped like the rule formatters so the
+ * store can treat both paths uniformly. Throws on transport/provider errors so
+ * the caller can fall back to the local rule formatter.
+ */
+export async function aiFormat(
+  text: string,
+  language: Language,
+  provider: AiProvider
+): Promise<FormatResult> {
+  const out = stripFence(await aiComplete(provider, buildFormatPrompt(text, language)));
+  return {
+    text: out,
+    language,
+    warnings: [],
+    changed: out !== text,
+  };
+}
+
+/**
+ * Streaming format. Calls `onText(partial)` as the model emits tokens so the UI
+ * can render output live, then resolves with the final fence-stripped result.
+ */
+export async function aiFormatStream(
+  text: string,
+  language: Language,
+  provider: AiProvider,
+  onText: (partial: string) => void
+): Promise<FormatResult> {
+  const full = await aiCompleteStream(
+    provider,
+    buildFormatPrompt(text, language),
+    (_delta, acc) => onText(acc)
+  );
+  const out = stripFence(full);
+  return { text: out, language, warnings: [], changed: out !== text };
+}
+
+/** Run an arbitrary AI task, returning raw text (caller decides where it goes). */
+export async function runAiTask(
+  task: AiTask,
+  text: string,
+  language: Language,
+  provider: AiProvider
+): Promise<string> {
+  const raw = await aiComplete(provider, task.build(text, language));
+  return task.output === "code" ? stripFence(raw) : raw.trim();
+}

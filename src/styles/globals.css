@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * CmdPolish — Vercel / Geist design system (light, achromatic)
+ * White canvas, #171717 text, shadow-as-border, three-weight Geist.
+ * ------------------------------------------------------------------ */
+
+@theme {
+  --font-sans: "Geist Variable", Arial, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular,
+    "Roboto Mono", Menlo, Monaco, "Liberation Mono", "Courier New", monospace;
+
+  /* Canvas & surfaces */
+  --color-bg: #ffffff;
+  --color-panel: #ffffff;
+  --color-surface-2: #fafafa;
+
+  /* Borders (shadow-as-border colour) */
+  --color-border: #ebebeb;
+  --color-border-strong: rgba(0, 0, 0, 0.08);
+
+  /* Foreground / text */
+  --color-fg: #171717;
+  --color-fg-secondary: #4d4d4d;
+  --color-fg-muted: #666666;
+  --color-fg-faint: #808080;
+
+  /* Interactive */
+  --color-primary: #171717;
+  --color-accent: #0a72ef;
+  --color-link: #0072f5;
+  --color-focus: hsla(212, 100%, 48%, 1);
+  --color-badge-bg: #ebf5ff;
+  --color-badge-text: #0068d6;
+
+  /* Workflow accents (functional only) */
+  --color-ship: #ff5b4f;
+  --color-preview: #de1d8d;
+  --color-develop: #0a72ef;
+}
+
+:root {
+  /* Signature shadow-as-border + elevation stacks */
+  --shadow-border: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  --shadow-ring: rgb(235, 235, 235) 0px 0px 0px 1px;
+  --shadow-card: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px;
+  --shadow-pop: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.04) 0px 2px 2px, rgba(0, 0, 0, 0.04) 0px 8px 8px -8px,
+    #fafafa 0px 0px 0px 1px;
+  --focus-ring: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-feature-settings: "liga" 1;
+  letter-spacing: -0.011em; /* Geist runs tight */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+code,
+pre,
+kbd,
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "liga" 1;
+}
+
+::selection {
+  background-color: hsla(0, 0%, 92%, 1);
+  color: var(--color-fg);
+}
+
+/* Give Monaco's scrollbar lane a solid (opaque) background; the slider keeps
+ * its natural idle fade on top. */
+.monaco-editor .scrollbar.vertical,
+.monaco-editor .scrollbar.horizontal {
+  background: #f0f0f0 !important;
+}
+.monaco-editor .scrollbar .slider {
+  background: #c2c2c2 !important;
+  border-radius: 9999px !important;
+}
+.monaco-editor .scrollbar .slider:hover {
+  background: #a3a3a3 !important;
+}
+.monaco-editor .scrollbar .slider.active {
+  background: #8c8c8c !important;
+}
+
+/* Light, whisper-weight scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #e2e2e2;
+  border-radius: 9999px;
+  border: 2px solid #fff;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #d4d4d4;
+}
+
+/* Utility: the shadow-border surface used everywhere */
+.surface-border {
+  box-shadow: var(--shadow-border);
+}
+.surface-card {
+  box-shadow: var(--shadow-card);
+}
+.surface-pop {
+  box-shadow: var(--shadow-pop);
+}
+
+/* ------------------------------------------------------------------ *
+ * Motion — quick, restrained, Vercel-like. Short durations, soft easing.
+ * ------------------------------------------------------------------ */
+@keyframes cp-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes cp-pop-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes cp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes cp-slide-in-right {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-pop {
+  animation: cp-pop-in 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
+}
+.animate-pop-up {
+  animation: cp-pop-up 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: bottom right;
+}
+.animate-fade {
+  animation: cp-fade-in 0.18s ease-out;
+}
+.animate-drawer {
+  animation: cp-slide-in-right 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop,
+  .animate-pop-up,
+  .animate-fade,
+  .animate-drawer {
+    animation: none;
+  }
+}
