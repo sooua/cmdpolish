@@ -6,6 +6,7 @@ export const messages = {
     "pane.input": "Input",
     "pane.output": "Output",
     "pane.inputHint": "paste command / code / config",
+    "pane.outputEmpty": "Formatted output appears here",
 
     "banner.needAi":
       "Configure AI before formatting. Set Provider / Model / API Key and turn on “Format with AI”.",
@@ -114,6 +115,7 @@ export const messages = {
     "pane.input": "输入",
     "pane.output": "输出",
     "pane.inputHint": "粘贴命令 / 代码 / 配置",
+    "pane.outputEmpty": "格式化结果会显示在这里",
 
     "banner.needAi":
       "需要先配置 AI 才能格式化。填好 Provider / Model / API Key 并开启「用 AI 格式化」。",

@@ -26,7 +26,7 @@ export function ConfirmDialog() {
   return (
     <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center p-6">
       <div className="absolute inset-0 bg-[#171717]/25" onClick={() => respond(false)} />
-      <div className="animate-pop relative w-[400px] max-w-full overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
+      <div className="animate-modal relative w-[400px] max-w-full overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
         <div className="flex gap-3 px-5 pb-4 pt-5">
           {opts.danger && (
             <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fef2f2] text-[#e5484d]">

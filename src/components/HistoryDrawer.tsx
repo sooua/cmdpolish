@@ -103,7 +103,7 @@ export function HistoryDrawer() {
         {/* List */}
         <div className="min-h-0 flex-1 overflow-auto">
           {history.length === 0 ? (
-            <div className="px-4 py-10 text-center text-[13px] text-[#808080]">
+            <div className="px-4 py-10 text-center text-[13px] text-[#6e6e6e]">
               {t("history.empty")}
             </div>
           ) : (
@@ -122,7 +122,7 @@ export function HistoryDrawer() {
                       <div className="truncate font-mono text-[13px] text-[#171717]">
                         {e.title}
                       </div>
-                      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#808080]">
+                      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#6e6e6e]">
                         <span className="rounded-full bg-[#fafafa] px-1.5 py-0.5 font-mono text-[#666666] shadow-[var(--shadow-border)]">
                           {e.language}
                         </span>

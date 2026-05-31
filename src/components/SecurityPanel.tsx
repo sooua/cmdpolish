@@ -57,7 +57,7 @@ export function SecurityPanel({
                     />
                     {g.title}
                     {f.line ? (
-                      <span className="text-[#808080]">line {f.line}</span>
+                      <span className="text-[#6e6e6e]">line {f.line}</span>
                     ) : null}
                   </div>
                   <p className="mt-1 opacity-90">{g.message}</p>
@@ -103,7 +103,7 @@ export function SecurityPanel({
       )}
 
       {guard.level !== "none" && findings.length === 0 && (
-        <p className="flex items-center gap-1.5 text-[11px] text-[#808080]">
+        <p className="flex items-center gap-1.5 text-[11px] text-[#6e6e6e]">
           <Lock size={11} /> {t("security.redactHint")}
         </p>
       )}

@@ -182,6 +182,14 @@ export default function App() {
             {s.aiBusy && !s.output && (
               <GeneratingOverlay label={t("overlay.generating")} />
             )}
+            {!s.aiBusy && !s.output && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className="flex items-center gap-2 text-[13px] text-[#6e6e6e]">
+                  <Sparkles size={15} className="text-[#a3a3a3]" />
+                  {t("pane.outputEmpty")}
+                </span>
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -217,7 +225,10 @@ export default function App() {
             </div>
           )}
         </div>
-        <div className="max-h-44 overflow-auto border-t border-[#ebebeb]">
+        <div
+          key={tab}
+          className="animate-fade max-h-44 overflow-auto border-t border-[#ebebeb]"
+        >
           {tab === "security" && (
             <SecurityPanel guard={s.guard} findings={s.redactFindings} />
           )}
@@ -258,7 +269,7 @@ function GeneratingOverlay({ label }: { label: string }) {
     return () => window.clearInterval(t);
   }, []);
   return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
+    <div className="animate-fade pointer-events-none absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
       <div className="flex items-center gap-2 rounded-lg bg-white px-3.5 py-2 text-[13px] text-[#4d4d4d] shadow-[var(--shadow-pop)]">
         <Sparkles size={15} className="animate-pulse text-[#0a72ef]" />
         {label}{" "}
@@ -276,7 +287,7 @@ function PaneHeader({ title, hint }: { title: string; hint: string }) {
       <span className="font-mono text-[11px] font-medium uppercase tracking-tight text-[#171717]">
         {title}
       </span>
-      <span className="font-mono text-[11px] text-[#808080]">{hint}</span>
+      <span className="font-mono text-[11px] text-[#6e6e6e]">{hint}</span>
     </div>
   );
 }

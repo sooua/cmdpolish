@@ -35,7 +35,7 @@ export function AiActionsMenu() {
           <Wand2 size={15} />
         )}
         {t("aiActions.title")}
-        <ChevronDown size={13} className="text-[#808080]" />
+        <ChevronDown size={13} className="text-[#6e6e6e]" />
       </button>
 
       {open && (
@@ -58,7 +58,7 @@ export function AiActionsMenu() {
               <span className="text-[13px] text-[#171717]">
                 {t(`task.${task.id}.label` as MsgKey)}
               </span>
-              <span className="text-[11px] text-[#808080]">
+              <span className="text-[11px] text-[#6e6e6e]">
                 {t(`task.${task.id}.hint` as MsgKey)}
               </span>
             </button>

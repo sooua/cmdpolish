@@ -23,7 +23,7 @@ export function Select({ className = "", density = "md", ...props }: Props) {
       />
       <ChevronDown
         size={13}
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#808080]"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#6e6e6e]"
       />
     </div>
   );

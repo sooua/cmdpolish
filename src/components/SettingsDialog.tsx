@@ -92,7 +92,7 @@ export function SettingsDialog() {
         className="absolute inset-0 bg-[#171717]/20"
         onClick={() => setSettingsOpen(false)}
       />
-      <div className="animate-pop relative flex max-h-[85vh] w-[460px] max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
+      <div className="animate-modal relative flex max-h-[85vh] w-[460px] max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
         <header className="flex items-center justify-between px-5 py-3.5 shadow-[var(--shadow-border)]">
           <span className="text-[15px] font-semibold tracking-[-0.01em] text-[#171717]">
             {t("settings.title")}
@@ -150,7 +150,7 @@ export function SettingsDialog() {
               checked={settings.aiEnabled}
               onChange={(v) => updateSettings({ aiEnabled: v })}
             />
-            <p className="-mt-1 text-[11px] text-[#808080]">
+            <p className="-mt-1 text-[11px] text-[#6e6e6e]">
               {t("aiMenu.useAiHint")}
             </p>
 
@@ -300,7 +300,7 @@ export function SettingsDialog() {
               ))}
             </div>
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] text-[#808080]">
+              <span className="text-[11px] text-[#6e6e6e]">
                 {t("shortcut.hint")}
               </span>
               <button
@@ -380,7 +380,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-2.5">
-      <h3 className="font-mono text-[10px] uppercase tracking-tight text-[#808080]">
+      <h3 className="font-mono text-[10px] uppercase tracking-tight text-[#6e6e6e]">
         {title}
       </h3>
       {children}

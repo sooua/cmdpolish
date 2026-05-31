@@ -176,20 +176,36 @@ kbd,
 }
 .animate-pop-up {
   animation: cp-pop-up 0.14s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: bottom right;
+  transform-origin: bottom left;
+}
+.animate-modal {
+  animation: cp-pop-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center;
 }
 .animate-fade {
-  animation: cp-fade-in 0.18s ease-out;
+  animation: cp-fade-in 0.16s ease-out;
 }
 .animate-drawer {
-  animation: cp-slide-in-right 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: cp-slide-in-right 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Keyboard focus — one consistent ring across all interactive elements.
+ * Uses :where() for zero specificity so it never fights component styling,
+ * and :focus-visible so it only shows for keyboard users. */
+:where(button, summary, a[href], [tabindex]):focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Reduced motion: neutralize all animation/transition, keep functionality. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-pop,
-  .animate-pop-up,
-  .animate-fade,
-  .animate-drawer {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
