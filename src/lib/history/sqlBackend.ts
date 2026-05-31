@@ -17,6 +17,7 @@ type Row = {
   updated_at: string;
   has_secrets: number;
   risk_level: string;
+  duration_ms: number | null;
 };
 
 function toEntry(r: Row): HistoryEntry {
@@ -30,6 +31,7 @@ function toEntry(r: Row): HistoryEntry {
     updatedAt: r.updated_at,
     hasSecrets: r.has_secrets === 1,
     riskLevel: r.risk_level as RiskLevel,
+    durationMs: r.duration_ms ?? undefined,
   };
 }
 
@@ -75,8 +77,8 @@ export class SqlHistoryBackend implements HistoryBackend {
   async add(e: HistoryEntry): Promise<void> {
     await this.database.execute(
       `INSERT OR REPLACE INTO snippets
-        (id, title, language, input_text, output_text, created_at, updated_at, has_secrets, risk_level)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        (id, title, language, input_text, output_text, created_at, updated_at, has_secrets, risk_level, duration_ms)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         e.id,
         e.title,
@@ -87,6 +89,7 @@ export class SqlHistoryBackend implements HistoryBackend {
         e.updatedAt,
         e.hasSecrets ? 1 : 0,
         e.riskLevel,
+        e.durationMs ?? null,
       ]
     );
   }

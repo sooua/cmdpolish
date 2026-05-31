@@ -44,6 +44,9 @@ pub struct AiRequest {
     pub max_tokens: u32,
     #[serde(default)]
     pub temperature: f32,
+    /// Disable server-side reasoning (Volcano Ark / doubao reasoning models).
+    #[serde(default)]
+    pub disable_thinking: bool,
 }
 
 fn default_max_tokens() -> u32 {
@@ -84,7 +87,7 @@ pub async fn ai_complete(req: AiRequest) -> Result<AiResponse, String> {
             _ => {
                 // OpenAI-compatible (default).
                 let url = format!("{base}/chat/completions");
-                let body = serde_json::json!({
+                let mut body = serde_json::json!({
                     "model": req.model,
                     "temperature": req.temperature,
                     "stream": false,
@@ -93,6 +96,9 @@ pub async fn ai_complete(req: AiRequest) -> Result<AiResponse, String> {
                         { "role": "user", "content": req.user },
                     ],
                 });
+                if req.disable_thinking {
+                    body["thinking"] = serde_json::json!({ "type": "disabled" });
+                }
                 let mut headers = vec![];
                 if !req.api_key.is_empty() {
                     headers.push((
@@ -195,7 +201,7 @@ fn stream_body(req: &AiRequest) -> (String, serde_json::Value, Vec<(String, Stri
         (url, body, headers)
     } else {
         let url = format!("{base}/chat/completions");
-        let body = serde_json::json!({
+        let mut body = serde_json::json!({
             "model": req.model,
             "temperature": req.temperature,
             "stream": true,
@@ -204,6 +210,9 @@ fn stream_body(req: &AiRequest) -> (String, serde_json::Value, Vec<(String, Stri
                 { "role": "user", "content": req.user },
             ],
         });
+        if req.disable_thinking {
+            body["thinking"] = serde_json::json!({ "type": "disabled" });
+        }
         let mut headers = vec![];
         if !req.api_key.is_empty() {
             headers.push((

@@ -111,7 +111,7 @@ type AppState = {
   // History actions
   initHistory: () => Promise<void>;
   refreshHistory: (query?: HistoryQuery) => Promise<void>;
-  saveSnippet: () => Promise<void>;
+  saveSnippet: (durationMs?: number) => Promise<void>;
   deleteSnippet: (id: string) => Promise<void>;
   clearHistory: () => Promise<void>;
   restoreSnippet: (entry: HistoryEntry) => void;
@@ -154,7 +154,13 @@ function initialSettings(): Settings {
     const saved = byId.get(p.id);
     // Keep the user's key/url/model overrides; refresh label/kind from preset.
     return saved
-      ? { ...p, ...saved, label: p.label, kind: p.kind }
+      ? {
+          ...p,
+          ...saved,
+          label: p.label,
+          kind: p.kind,
+          disableThinking: p.disableThinking,
+        }
       : { ...p, apiKey: DEFAULT_PROVIDER_KEYS[p.id] ?? "" };
   });
   // Merge shortcuts so newly-added actions get their defaults.
@@ -258,11 +264,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     set({ aiBusy: true, aiError: "", output: "" });
+    const startedAt = performance.now();
     try {
       // Stream tokens into the output pane as they arrive for instant feedback.
       const res = await aiFormatStream(input, language, provider, (partial) =>
         set({ output: partial })
       );
+      const durationMs = Math.round(performance.now() - startedAt);
       set({
         output: res.text,
         warnings: res.warnings,
@@ -271,7 +279,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       });
       if (res.text.trim()) {
         get()
-          .saveSnippet()
+          .saveSnippet(durationMs)
           .catch((e) => console.error("History save failed:", e));
       }
     } catch (e) {
@@ -439,7 +447,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ history });
   },
 
-  saveSnippet: async () => {
+  saveSnippet: async (durationMs) => {
     const { input, output, language } = get();
     if (!input.trim() && !output.trim()) return;
 
@@ -471,6 +479,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       updatedAt: now,
       hasSecrets: secrets,
       riskLevel: risk,
+      durationMs,
     };
 
     const backend = await getHistoryBackend();

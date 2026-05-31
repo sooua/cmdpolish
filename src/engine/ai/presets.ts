@@ -13,6 +13,7 @@ export const PROVIDER_PRESETS: Omit<AiProvider, "apiKey">[] = [
     baseUrl: "https://ark.cn-beijing.volces.com/api/coding/v3",
     model: "ark-code-latest",
     local: false,
+    disableThinking: true,
   },
   {
     id: "anthropic",

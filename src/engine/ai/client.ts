@@ -32,6 +32,7 @@ export async function aiComplete(
         user: message.user,
         maxTokens: opts.maxTokens ?? 4096,
         temperature: opts.temperature ?? 0,
+        disableThinking: provider.disableThinking ?? false,
       },
     });
     return res.text;
@@ -91,6 +92,7 @@ export async function aiCompleteStream(
         user: message.user,
         maxTokens: opts.maxTokens ?? 4096,
         temperature: opts.temperature ?? 0,
+        disableThinking: provider.disableThinking ?? false,
       },
       onEvent: channel,
     });
@@ -132,6 +134,9 @@ export async function aiCompleteStream(
               model: provider.model,
               temperature: opts.temperature ?? 0,
               stream: true,
+              ...(provider.disableThinking
+                ? { thinking: { type: "disabled" } }
+                : {}),
               messages: [
                 { role: "system", content: message.system },
                 { role: "user", content: message.user },

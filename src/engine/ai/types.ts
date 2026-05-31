@@ -12,6 +12,12 @@ export type AiProvider = {
   apiKey: string;
   /** True for localhost endpoints — safe to send secrets to. */
   local: boolean;
+  /**
+   * Disable server-side chain-of-thought for reasoning models (e.g. Volcano
+   * Ark's ark-code-latest). Formatting needs no reasoning, and the long invisible
+   * thinking phase blocks streaming. Sends `thinking: {type: "disabled"}`.
+   */
+  disableThinking?: boolean;
 };
 
 export type AiMessage = {

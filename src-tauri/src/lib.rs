@@ -8,10 +8,11 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![Migration {
-        version: 1,
-        description: "create snippets table",
-        sql: "CREATE TABLE IF NOT EXISTS snippets (
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "create snippets table",
+            sql: "CREATE TABLE IF NOT EXISTS snippets (
                 id TEXT PRIMARY KEY,
                 title TEXT,
                 language TEXT,
@@ -22,8 +23,15 @@ pub fn run() {
                 has_secrets INTEGER,
                 risk_level TEXT
             );",
-        kind: MigrationKind::Up,
-    }];
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "add duration_ms column",
+            sql: "ALTER TABLE snippets ADD COLUMN duration_ms INTEGER;",
+            kind: MigrationKind::Up,
+        },
+    ];
 
     #[allow(unused_mut)]
     let mut builder = tauri::Builder::default()

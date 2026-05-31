@@ -1,9 +1,14 @@
 import { useEffect } from "react";
-import { X, Trash2, RotateCcw, Search, ShieldAlert, Lock } from "lucide-react";
+import { X, Trash2, RotateCcw, Search, ShieldAlert, Lock, Timer } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { SEVERITY_DOT } from "./severity";
 import { ask } from "./ui/confirm";
 import { useT } from "../i18n/useT";
+
+/** Compact duration: "850ms" under a second, otherwise "1.2s". */
+function formatDuration(ms: number): string {
+  return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
+}
 
 function timeAgo(iso: string, t: ReturnType<typeof useT>): string {
   const then = new Date(iso).getTime();
@@ -127,6 +132,15 @@ export function HistoryDrawer() {
                           {e.language}
                         </span>
                         <span>{timeAgo(e.createdAt, t)}</span>
+                        {e.durationMs != null && (
+                          <span
+                            className="flex items-center gap-1"
+                            title={t("history.duration")}
+                          >
+                            <Timer size={11} />
+                            {formatDuration(e.durationMs)}
+                          </span>
+                        )}
                         {e.hasSecrets && (
                           <span
                             className="flex items-center gap-1 text-[#7928ca]"

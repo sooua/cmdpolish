@@ -13,6 +13,8 @@ export type HistoryEntry = {
   updatedAt: string; // ISO 8601
   hasSecrets: boolean;
   riskLevel: RiskLevel;
+  /** AI formatting duration in milliseconds (undefined for older entries). */
+  durationMs?: number;
 };
 
 export type HistoryQuery = {
