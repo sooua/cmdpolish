@@ -4,6 +4,7 @@ import {
   History as HistoryIcon,
   Settings as SettingsIcon,
   Sparkles,
+  ArrowUpCircle,
 } from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { EditorPane } from "../components/EditorPane";
@@ -32,6 +33,7 @@ export default function App() {
     s.initHistory().catch((e) => console.error("History init failed:", e));
     const p = s.activeProvider();
     if (p && s.settings.aiEnabled) aiPrewarm(p);
+    s.checkForUpdate(true); // silent check on launch
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -125,6 +127,16 @@ export default function App() {
         <div data-tauri-drag-region className="flex-1" />
 
         <div className="flex items-center gap-1 pr-2">
+          {s.updateInfo && (
+            <button
+              onClick={() => s.setSettingsOpen(true)}
+              title={t("updates.available", { v: s.updateInfo.version })}
+              className="mr-1 inline-flex items-center gap-1 rounded-full bg-[#ebf5ff] px-2 py-0.5 text-[12px] font-medium text-[#0068d6] shadow-[inset_0_0_0_1px_#bfdbfe] transition-all hover:bg-[#dceefe] active:scale-[0.97]"
+            >
+              <ArrowUpCircle size={13} />
+              {t("updates.badge")}
+            </button>
+          )}
           <button
             onClick={() => s.setHistoryOpen(true)}
             title={t("history.title")}

@@ -1,7 +1,17 @@
 import { useEffect, useState } from "react";
-import { X, Loader2, Sparkles, CheckCircle2, XCircle, RotateCcw } from "lucide-react";
+import {
+  X,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  Download,
+  ArrowUpCircle,
+} from "lucide-react";
 import { useAppStore } from "../store/useAppStore";
 import { aiComplete, isLocalEndpoint } from "../engine/ai";
+import { appVersion } from "../lib/updater";
 import { useT } from "../i18n/useT";
 import { LOCALES, type Locale, type MsgKey } from "../i18n";
 import type { RedactMode } from "../engine/types";
@@ -42,12 +52,25 @@ export function SettingsDialog() {
     setActiveProvider,
     settingsOpen,
     setSettingsOpen,
+    updateInfo,
+    updateChecking,
+    updateChecked,
+    updateInstalling,
+    updateProgress,
+    updateError,
+    checkForUpdate,
+    runUpdateInstall,
   } = useAppStore();
   const t = useT();
   const [testState, setTestState] = useState<"idle" | "testing" | "ok" | "fail">(
     "idle"
   );
   const [testMsg, setTestMsg] = useState("");
+  const [version, setVersion] = useState("");
+
+  useEffect(() => {
+    if (settingsOpen) appVersion().then(setVersion);
+  }, [settingsOpen]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -313,6 +336,73 @@ export function SettingsDialog() {
                 {t("shortcut.reset")}
               </button>
             </div>
+          </Section>
+
+          {/* Updates */}
+          <Section title={t("updates.title")}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[13px] text-[#4d4d4d]">
+                {version ? t("updates.version", { v: version }) : "—"}
+              </span>
+              <button
+                onClick={() => checkForUpdate(false)}
+                disabled={updateChecking || updateInstalling}
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
+              >
+                {updateChecking ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <RotateCcw size={13} />
+                )}
+                {updateChecking ? t("updates.checking") : t("updates.check")}
+              </button>
+            </div>
+
+            {updateInfo ? (
+              <div className="flex flex-col gap-2 rounded-lg bg-[#ebf5ff] px-3 py-2.5 shadow-[inset_0_0_0_1px_#bfdbfe]">
+                <span className="flex items-center gap-1.5 text-[13px] font-medium text-[#0068d6]">
+                  <ArrowUpCircle size={15} />
+                  {t("updates.available", { v: updateInfo.version })}
+                </span>
+                {updateInfo.notes && (
+                  <p className="max-h-20 overflow-auto whitespace-pre-wrap text-[12px] leading-relaxed text-[#4d4d4d]">
+                    {updateInfo.notes}
+                  </p>
+                )}
+                <button
+                  onClick={() => runUpdateInstall()}
+                  disabled={updateInstalling}
+                  className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#171717] px-3 py-1.5 text-[12px] font-medium text-white transition-all hover:bg-black active:scale-[0.97] disabled:opacity-60"
+                >
+                  {updateInstalling ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : (
+                    <Download size={13} />
+                  )}
+                  {updateInstalling
+                    ? t("updates.installing", {
+                        pct:
+                          updateProgress >= 0
+                            ? `${Math.round(updateProgress * 100)}%`
+                            : "",
+                      })
+                    : t("updates.install")}
+                </button>
+                <span className="text-[11px] text-[#6e6e6e]">
+                  {t("updates.restartNote")}
+                </span>
+              </div>
+            ) : updateChecked && !updateError ? (
+              <span className="flex items-center gap-1.5 text-[12px] text-[#15803d]">
+                <CheckCircle2 size={13} /> {t("updates.upToDate")}
+              </span>
+            ) : null}
+
+            {updateError && (
+              <span className="text-[12px] text-[#e5484d]">
+                {t("updates.failed", { msg: updateError })}
+              </span>
+            )}
           </Section>
         </div>
       </div>

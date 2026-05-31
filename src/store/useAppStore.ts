@@ -32,6 +32,7 @@ import {
   DEFAULT_SHORTCUTS,
   type ShortcutAction,
 } from "../lib/shortcuts";
+import { checkUpdate, installUpdate, type UpdateInfo } from "../lib/updater";
 
 export type Settings = {
   locale: Locale;
@@ -69,6 +70,14 @@ type AppState = {
   aiError: string;
   settingsOpen: boolean; // controls the AI config popover
 
+  // Auto-update
+  updateInfo: UpdateInfo | null;
+  updateChecking: boolean;
+  updateChecked: boolean;
+  updateInstalling: boolean;
+  updateProgress: number; // 0..1, -1 when size unknown
+  updateError: string;
+
   // History
   history: HistoryEntry[];
   historyOpen: boolean;
@@ -94,6 +103,10 @@ type AppState = {
   setSettingsOpen: (open: boolean) => void;
   runTask: (task: AiTask) => Promise<void>;
   clearAiResult: () => void;
+
+  // Update actions
+  checkForUpdate: (silent?: boolean) => Promise<void>;
+  runUpdateInstall: () => Promise<void>;
 
   // History actions
   initHistory: () => Promise<void>;
@@ -181,6 +194,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   aiResult: "",
   aiError: "",
   settingsOpen: false,
+
+  updateInfo: null,
+  updateChecking: false,
+  updateChecked: false,
+  updateInstalling: false,
+  updateProgress: 0,
+  updateError: "",
 
   history: [],
   historyOpen: false,
@@ -374,6 +394,36 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   clearAiResult: () => set({ aiResult: "", aiError: "" }),
+
+  checkForUpdate: async (silent) => {
+    if (get().updateChecking || get().updateInstalling) return;
+    set({ updateChecking: true, updateError: "" });
+    try {
+      const info = await checkUpdate();
+      set({ updateInfo: info, updateChecked: true });
+    } catch (e) {
+      if (!silent) set({ updateError: (e as Error).message ?? String(e) });
+      console.error("Update check failed:", e);
+    } finally {
+      set({ updateChecking: false });
+    }
+  },
+
+  runUpdateInstall: async () => {
+    if (!get().updateInfo || get().updateInstalling) return;
+    set({ updateInstalling: true, updateError: "", updateProgress: 0 });
+    try {
+      await installUpdate((downloaded, total) => {
+        set({ updateProgress: total ? downloaded / total : -1 });
+      });
+      // installUpdate relaunches the app; nothing runs after this on success.
+    } catch (e) {
+      set({
+        updateInstalling: false,
+        updateError: (e as Error).message ?? String(e),
+      });
+    }
+  },
 
   initHistory: async () => {
     const backend = await getHistoryBackend();
