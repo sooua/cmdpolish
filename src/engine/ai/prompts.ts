@@ -9,7 +9,7 @@ export function stripFence(text: string): string {
 }
 
 const FORMAT_SYSTEM = `You are CmdPolish's formatter. Reformat the input into clean, copy-paste-ready form.
-Rules: output ONLY the reformatted content — no explanation, no Markdown fences. Never change semantics (same flags/values/order). Preserve string literals, secrets, heredoc bodies and quoting exactly. Long shell/Docker/kubectl: break lines with trailing backslash, keep each flag with its value, indent 2 spaces, keep heredocs intact. SQL: uppercase keywords, one clause per line. JSON/YAML/.env: normalize indentation, keep key order and comments. If already clean, return unchanged.`;
+Rules: output ONLY the reformatted content — no explanation, no Markdown fences. Never change semantics (same flags/values/order). Preserve string literals, secrets, heredoc bodies and quoting exactly. Long shell/Docker/kubectl: break lines with trailing backslash, keep each flag with its value, indent 2 spaces, keep heredoc bodies intact but ALWAYS place the closing heredoc delimiter (e.g. EOF) at column 0 with no leading whitespace unless the opener uses the <<- form. SQL: uppercase keywords, one clause per line. JSON/YAML/.env: normalize indentation, keep key order and comments. If already clean, return unchanged.`;
 
 /** Build the prompt for the primary Format action. */
 export function buildFormatPrompt(text: string, language: string): AiMessage {

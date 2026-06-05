@@ -1,4 +1,5 @@
 import type { FormatResult, Language } from "../types";
+import { normalizeHeredocTerminators } from "../format/heredoc";
 import { aiComplete, aiCompleteStream } from "./client";
 import { buildFormatPrompt, stripFence } from "./prompts";
 import type { AiProvider, AiTask } from "./types";
@@ -24,7 +25,9 @@ export async function aiFormat(
   language: Language,
   provider: AiProvider
 ): Promise<FormatResult> {
-  const out = stripFence(await aiComplete(provider, buildFormatPrompt(text, language)));
+  const out = normalizeHeredocTerminators(
+    stripFence(await aiComplete(provider, buildFormatPrompt(text, language)))
+  );
   return {
     text: out,
     language,
@@ -48,7 +51,7 @@ export async function aiFormatStream(
     buildFormatPrompt(text, language),
     (_delta, acc) => onText(acc)
   );
-  const out = stripFence(full);
+  const out = normalizeHeredocTerminators(stripFence(full));
   return { text: out, language, warnings: [], changed: out !== text };
 }
 
