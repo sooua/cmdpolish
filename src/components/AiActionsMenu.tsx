@@ -26,7 +26,7 @@ export function AiActionsMenu() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
+        className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-body font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
         title={t("aiActions.title")}
       >
         {aiBusy ? (
@@ -41,7 +41,7 @@ export function AiActionsMenu() {
       {open && (
         <div className="animate-pop-up absolute bottom-full left-0 z-20 mb-1.5 w-72 overflow-hidden rounded-xl bg-white p-1 shadow-[var(--shadow-pop)]">
           {!ready && (
-            <div className="px-3 py-2 text-[12px] text-[#9a3412]">
+            <div className="px-3 py-2 text-caption text-[#9a3412]">
               {t("aiActions.needProvider")}
             </div>
           )}
@@ -55,10 +55,10 @@ export function AiActionsMenu() {
               }}
               className="flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-[#fafafa] disabled:opacity-40"
             >
-              <span className="text-[13px] text-[#171717]">
+              <span className="text-body text-[#171717]">
                 {t(`task.${task.id}.label` as MsgKey)}
               </span>
-              <span className="text-[11px] text-[#6e6e6e]">
+              <span className="text-micro text-[#6e6e6e]">
                 {t(`task.${task.id}.hint` as MsgKey)}
               </span>
             </button>

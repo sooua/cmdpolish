@@ -119,7 +119,7 @@ export default function App() {
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#171717]">
             <Terminal size={13} className="text-white" />
           </span>
-          <span className="text-[13px] font-semibold tracking-[-0.02em]">
+          <span className="text-body font-semibold tracking-[-0.02em]">
             CmdPolish
           </span>
         </div>
@@ -131,7 +131,7 @@ export default function App() {
             <button
               onClick={() => s.setSettingsOpen(true)}
               title={t("updates.available", { v: s.updateInfo.version })}
-              className="mr-1 inline-flex items-center gap-1 rounded-full bg-[#ebf5ff] px-2 py-0.5 text-[12px] font-medium text-[#0068d6] shadow-[inset_0_0_0_1px_#bfdbfe] transition-all hover:bg-[#dceefe] active:scale-[0.97]"
+              className="mr-1 inline-flex items-center gap-1 rounded-full bg-[#ebf5ff] px-2 py-0.5 text-caption font-medium text-[#0068d6] shadow-[inset_0_0_0_1px_#bfdbfe] transition-all hover:bg-[#dceefe] active:scale-[0.97]"
             >
               <ArrowUpCircle size={13} />
               {t("updates.badge")}
@@ -157,12 +157,12 @@ export default function App() {
 
       {/* Onboarding banner — AI is required to format. */}
       {!s.aiReady() && (
-        <div className="flex items-center gap-3 bg-[#fafafa] px-5 py-2.5 text-[13px] text-[#4d4d4d] shadow-[var(--shadow-border)]">
+        <div className="flex items-center gap-3 bg-[#fafafa] px-5 py-2.5 text-body text-[#4d4d4d] shadow-[var(--shadow-border)]">
           <Sparkles size={15} className="shrink-0 text-[#0a72ef]" />
           <span className="flex-1">{t("banner.needAi")}</span>
           <button
             onClick={() => s.setSettingsOpen(true)}
-            className="shrink-0 rounded-md bg-[#171717] px-3 py-1 text-[13px] font-medium text-white transition-all hover:bg-black active:scale-[0.97]"
+            className="shrink-0 rounded-md bg-[#171717] px-3 py-1 text-body font-medium text-white transition-all hover:bg-black active:scale-[0.97]"
           >
             {t("banner.configAi")}
           </button>
@@ -196,7 +196,7 @@ export default function App() {
             )}
             {!s.aiBusy && !s.output && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <span className="flex items-center gap-2 text-[13px] text-[#6e6e6e]">
+                <span className="flex items-center gap-2 text-body text-[#6e6e6e]">
                   <Sparkles size={15} className="text-[#a3a3a3]" />
                   {t("pane.outputEmpty")}
                 </span>
@@ -282,7 +282,7 @@ function GeneratingOverlay({ label }: { label: string }) {
   }, []);
   return (
     <div className="animate-fade pointer-events-none absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-      <div className="flex items-center gap-2 rounded-lg bg-white px-3.5 py-2 text-[13px] text-[#4d4d4d] shadow-[var(--shadow-pop)]">
+      <div className="flex items-center gap-2 rounded-lg bg-white px-3.5 py-2 text-body text-[#4d4d4d] shadow-[var(--shadow-pop)]">
         <Sparkles size={15} className="animate-pulse text-[#0a72ef]" />
         {label}{" "}
         <span className="font-mono tabular-nums text-[#171717]">
@@ -296,10 +296,10 @@ function GeneratingOverlay({ label }: { label: string }) {
 function PaneHeader({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="flex items-center justify-between bg-white px-4 py-2 shadow-[var(--shadow-border)]">
-      <span className="font-mono text-[11px] font-medium uppercase tracking-tight text-[#171717]">
+      <span className="font-mono text-micro font-medium uppercase tracking-tight text-[#171717]">
         {title}
       </span>
-      <span className="font-mono text-[11px] text-[#6e6e6e]">{hint}</span>
+      <span className="font-mono text-micro text-[#6e6e6e]">{hint}</span>
     </div>
   );
 }
@@ -319,7 +319,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={
-        "flex items-center gap-1.5 border-b-2 px-2 py-2.5 text-[13px] font-medium transition-colors " +
+        "flex items-center gap-1.5 border-b-2 px-2 py-2.5 text-body font-medium transition-colors " +
         (active
           ? "border-[#171717] text-[#171717]"
           : "border-transparent text-[#666666] hover:text-[#171717]")
@@ -327,7 +327,7 @@ function TabButton({
     >
       {children}
       {badge ? (
-        <span className="rounded-full bg-[#ebf5ff] px-1.5 text-[11px] font-medium text-[#0068d6]">
+        <span className="rounded-full bg-[#ebf5ff] px-1.5 text-micro font-medium text-[#0068d6]">
           {badge}
         </span>
       ) : null}
@@ -349,17 +349,17 @@ function AiPanel({
   const t = useT();
   if (busy && !result)
     return (
-      <div className="px-4 py-3 text-[13px] text-[#666666]">
+      <div className="px-4 py-3 text-body text-[#666666]">
         {t("ai.panel.processing")}
       </div>
     );
   if (error)
     return (
       <div className="px-4 py-3">
-        <p className="text-[13px] text-[#e5484d]">{error}</p>
+        <p className="text-body text-[#e5484d]">{error}</p>
         <button
           onClick={onClear}
-          className="mt-2 text-xs text-[#666666] hover:text-[#171717]"
+          className="mt-2 text-caption text-[#666666] hover:text-[#171717]"
         >
           {t("common.clear")}
         </button>
@@ -367,18 +367,18 @@ function AiPanel({
     );
   if (!result)
     return (
-      <div className="px-4 py-3 text-[13px] text-[#666666]">
+      <div className="px-4 py-3 text-body text-[#666666]">
         {t("ai.panel.empty")}
       </div>
     );
   return (
     <div className="px-4 py-3">
-      <pre className="whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-[#171717]">
+      <pre className="whitespace-pre-wrap break-words font-mono text-caption leading-relaxed text-[#171717]">
         {result}
       </pre>
       <button
         onClick={onClear}
-        className="mt-2 text-xs text-[#666666] hover:text-[#171717]"
+        className="mt-2 text-caption text-[#666666] hover:text-[#171717]"
       >
         {t("common.clear")}
       </button>
@@ -390,14 +390,14 @@ function WarningsPanel({ warnings }: { warnings: string[] }) {
   const t = useT();
   if (warnings.length === 0)
     return (
-      <div className="px-4 py-3 text-[13px] text-[#666666]">
+      <div className="px-4 py-3 text-body text-[#666666]">
         {t("warnings.none")}
       </div>
     );
   return (
     <ul className="flex flex-col gap-1.5 px-4 py-3">
       {warnings.map((w, i) => (
-        <li key={i} className="text-xs text-[#b45309]">
+        <li key={i} className="text-caption text-[#b45309]">
           • {w}
         </li>
       ))}

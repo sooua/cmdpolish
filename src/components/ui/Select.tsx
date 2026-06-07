@@ -15,7 +15,7 @@ export function Select({ className = "", density = "md", ...props }: Props) {
       <select
         {...props}
         className={
-          "w-full appearance-none rounded-md bg-white text-[13px] text-[#171717] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)] " +
+          "w-full appearance-none rounded-md bg-white text-body text-[#171717] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)] " +
           pad +
           " " +
           className

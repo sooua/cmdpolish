@@ -22,7 +22,7 @@ export function SecurityPanel({
   const clean = guard.level === "none" && findings.length === 0;
   if (clean) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 text-[13px] text-[#15803d]">
+      <div className="flex items-center gap-2 px-4 py-3 text-body text-[#15803d]">
         <ShieldCheck size={16} />
         <span>{t("security.allClean")}</span>
       </div>
@@ -34,7 +34,7 @@ export function SecurityPanel({
       {/* Dangerous-command review */}
       {guard.level !== "none" && (
         <section className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-[13px] font-medium text-[#171717]">
+          <div className="flex items-center gap-2 text-body font-medium text-[#171717]">
             <ShieldAlert size={15} className="text-[#f97316]" />
             <span>
               {t("security.riskCount", {
@@ -49,7 +49,7 @@ export function SecurityPanel({
               return (
                 <li
                   key={`${f.ruleId}-${i}`}
-                  className={`rounded-lg px-3 py-2 text-xs ${SEVERITY_COLOR[f.severity]}`}
+                  className={`rounded-lg px-3 py-2 text-caption ${SEVERITY_COLOR[f.severity]}`}
                 >
                   <div className="flex items-center gap-2 font-medium">
                     <span
@@ -74,7 +74,7 @@ export function SecurityPanel({
       {/* Redaction findings */}
       {findings.length > 0 && (
         <section className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-[13px] font-medium text-[#171717]">
+          <div className="flex items-center gap-2 text-body font-medium text-[#171717]">
             <EyeOff size={15} className="text-[#7928ca]" />
             <span>{t("security.redactedCount", { n: findings.length })}</span>
           </div>
@@ -82,7 +82,7 @@ export function SecurityPanel({
             {findings.map((f, i) => (
               <li
                 key={i}
-                className="flex items-center justify-between gap-3 rounded-md px-3 py-1.5 text-xs shadow-[var(--shadow-border)]"
+                className="flex items-center justify-between gap-3 rounded-md px-3 py-1.5 text-caption shadow-[var(--shadow-border)]"
               >
                 <span className="flex items-center gap-2">
                   <span
@@ -103,7 +103,7 @@ export function SecurityPanel({
       )}
 
       {guard.level !== "none" && findings.length === 0 && (
-        <p className="flex items-center gap-1.5 text-[11px] text-[#6e6e6e]">
+        <p className="flex items-center gap-1.5 text-micro text-[#6e6e6e]">
           <Lock size={11} /> {t("security.redactHint")}
         </p>
       )}

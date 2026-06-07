@@ -21,7 +21,7 @@ export function OutputActions({ onCopy, onCopyMarkdown }: Props) {
   };
 
   const btn =
-    "inline-flex items-center gap-1.5 rounded-md bg-white px-2.5 py-1 text-[12px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]";
+    "inline-flex items-center gap-1.5 rounded-md bg-white px-2.5 py-1 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]";
 
   return (
     <div className="flex items-center gap-1.5">

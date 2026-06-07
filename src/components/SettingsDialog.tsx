@@ -106,8 +106,8 @@ export function SettingsDialog() {
   };
 
   const field =
-    "w-full rounded-md bg-white px-2.5 py-1.5 text-[13px] text-[#171717] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)]";
-  const label = "text-[12px] text-[#666666]";
+    "w-full rounded-md bg-white px-2.5 py-1.5 text-body text-[#171717] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)]";
+  const label = "text-caption text-[#666666]";
 
   return (
     <div className="animate-fade fixed inset-0 z-40 flex items-center justify-center p-6">
@@ -117,7 +117,7 @@ export function SettingsDialog() {
       />
       <div className="animate-modal relative flex max-h-[85vh] w-[460px] max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
         <header className="flex items-center justify-between px-5 py-3.5 shadow-[var(--shadow-border)]">
-          <span className="text-[15px] font-semibold tracking-[-0.01em] text-[#171717]">
+          <span className="text-title font-semibold text-[#171717]">
             {t("settings.title")}
           </span>
           <button
@@ -173,7 +173,7 @@ export function SettingsDialog() {
               checked={settings.aiEnabled}
               onChange={(v) => updateSettings({ aiEnabled: v })}
             />
-            <p className="-mt-1 text-[11px] text-[#6e6e6e]">
+            <p className="-mt-1 text-micro text-[#6e6e6e]">
               {t("aiMenu.useAiHint")}
             </p>
 
@@ -243,7 +243,7 @@ export function SettingsDialog() {
                   <button
                     onClick={test}
                     disabled={testState === "testing"}
-                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
                   >
                     {testState === "testing" ? (
                       <Loader2 size={13} className="animate-spin" />
@@ -253,13 +253,13 @@ export function SettingsDialog() {
                     {t("aiMenu.test")}
                   </button>
                   {testState === "ok" && (
-                    <span className="flex items-center gap-1 text-[12px] text-[#15803d]">
+                    <span className="flex items-center gap-1 text-caption text-[#15803d]">
                       <CheckCircle2 size={13} /> {testMsg}
                     </span>
                   )}
                   {testState === "fail" && (
                     <span
-                      className="flex items-center gap-1 truncate text-[12px] text-[#e5484d]"
+                      className="flex items-center gap-1 truncate text-caption text-[#e5484d]"
                       title={testMsg}
                     >
                       <XCircle size={13} /> {t("aiMenu.fail")}
@@ -267,7 +267,7 @@ export function SettingsDialog() {
                   )}
                 </div>
                 {!local && (
-                  <p className="text-[11px] text-[#9a3412]">
+                  <p className="text-micro text-[#9a3412]">
                     {t("aiMenu.cloudWarn")}
                   </p>
                 )}
@@ -323,14 +323,14 @@ export function SettingsDialog() {
               ))}
             </div>
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] text-[#6e6e6e]">
+              <span className="text-micro text-[#6e6e6e]">
                 {t("shortcut.hint")}
               </span>
               <button
                 onClick={() =>
                   updateSettings({ shortcuts: { ...DEFAULT_SHORTCUTS } })
                 }
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
               >
                 <RotateCcw size={13} />
                 {t("shortcut.reset")}
@@ -341,13 +341,13 @@ export function SettingsDialog() {
           {/* Updates */}
           <Section title={t("updates.title")}>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-[13px] text-[#4d4d4d]">
+              <span className="text-body text-[#4d4d4d]">
                 {version ? t("updates.version", { v: version }) : "—"}
               </span>
               <button
                 onClick={() => checkForUpdate(false)}
                 disabled={updateChecking || updateInstalling}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
               >
                 {updateChecking ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -360,19 +360,19 @@ export function SettingsDialog() {
 
             {updateInfo ? (
               <div className="flex flex-col gap-2 rounded-lg bg-[#ebf5ff] px-3 py-2.5 shadow-[inset_0_0_0_1px_#bfdbfe]">
-                <span className="flex items-center gap-1.5 text-[13px] font-medium text-[#0068d6]">
+                <span className="flex items-center gap-1.5 text-body font-medium text-[#0068d6]">
                   <ArrowUpCircle size={15} />
                   {t("updates.available", { v: updateInfo.version })}
                 </span>
                 {updateInfo.notes && (
-                  <p className="max-h-20 overflow-auto whitespace-pre-wrap text-[12px] leading-relaxed text-[#4d4d4d]">
+                  <p className="max-h-20 overflow-auto whitespace-pre-wrap text-caption leading-relaxed text-[#4d4d4d]">
                     {updateInfo.notes}
                   </p>
                 )}
                 <button
                   onClick={() => runUpdateInstall()}
                   disabled={updateInstalling}
-                  className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#171717] px-3 py-1.5 text-[12px] font-medium text-white transition-all hover:bg-black active:scale-[0.97] disabled:opacity-60"
+                  className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#171717] px-3 py-1.5 text-caption font-medium text-white transition-all hover:bg-black active:scale-[0.97] disabled:opacity-60"
                 >
                   {updateInstalling ? (
                     <Loader2 size={13} className="animate-spin" />
@@ -388,18 +388,18 @@ export function SettingsDialog() {
                       })
                     : t("updates.install")}
                 </button>
-                <span className="text-[11px] text-[#6e6e6e]">
+                <span className="text-micro text-[#6e6e6e]">
                   {t("updates.restartNote")}
                 </span>
               </div>
             ) : updateChecked && !updateError ? (
-              <span className="flex items-center gap-1.5 text-[12px] text-[#15803d]">
+              <span className="flex items-center gap-1.5 text-caption text-[#15803d]">
                 <CheckCircle2 size={13} /> {t("updates.upToDate")}
               </span>
             ) : null}
 
             {updateError && (
-              <span className="text-[12px] text-[#e5484d]">
+              <span className="text-caption text-[#e5484d]">
                 {t("updates.failed", { msg: updateError })}
               </span>
             )}
@@ -444,12 +444,12 @@ function ShortcutRow({
   }, [recording, onChange]);
 
   return (
-    <div className="flex items-center justify-between gap-3 py-1.5 text-[13px] text-[#4d4d4d]">
+    <div className="flex items-center justify-between gap-3 py-1.5 text-body text-[#4d4d4d]">
       <span>{label}</span>
       <button
         onClick={() => setRecording((r) => !r)}
         className={
-          "min-w-[88px] rounded-md px-2.5 py-1 text-center font-mono text-[12px] transition-all active:scale-[0.97] " +
+          "min-w-[88px] rounded-md px-2.5 py-1 text-center font-mono text-caption transition-all active:scale-[0.97] " +
           (recording
             ? "bg-[#ebf5ff] text-[#0068d6] shadow-[inset_0_0_0_1px_#bfdbfe]"
             : "text-[#171717] shadow-[var(--shadow-ring)] hover:bg-[#fafafa]")
@@ -470,7 +470,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-2.5">
-      <h3 className="font-mono text-[10px] uppercase tracking-tight text-[#6e6e6e]">
+      <h3 className="font-mono text-micro uppercase tracking-tight text-[#6e6e6e]">
         {title}
       </h3>
       {children}
@@ -480,7 +480,7 @@ function Section({
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 text-[13px] text-[#4d4d4d]">
+    <div className="flex items-center justify-between gap-3 text-body text-[#4d4d4d]">
       <span>{label}</span>
       {children}
     </div>
@@ -497,7 +497,7 @@ function SwitchRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 text-[13px] text-[#4d4d4d]">
+    <label className="flex cursor-pointer items-center justify-between gap-3 text-body text-[#4d4d4d]">
       <span>{label}</span>
       <Switch checked={checked} onChange={onChange} label={label} />
     </label>

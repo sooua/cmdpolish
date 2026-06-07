@@ -18,7 +18,7 @@ function ToolButton({ icon, label, onClick, primary, title }: ButtonProps) {
       onClick={onClick}
       title={title ?? label}
       className={
-        "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-all active:scale-[0.97] " +
+        "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-body font-medium transition-all active:scale-[0.97] " +
         (primary
           ? "bg-[#171717] text-white hover:bg-black"
           : "text-[#171717] shadow-[var(--shadow-ring)] hover:bg-[#fafafa]")
@@ -84,7 +84,7 @@ export function Toolbar({
         title={`${t("toolbar.clear")} · ${formatCombo(sc.clear)}`}
       />
 
-      <div className="ml-auto min-h-[20px] text-xs font-medium text-[#0a72ef]">
+      <div className="ml-auto min-h-[20px] text-caption font-medium text-[#0a72ef]">
         {status}
       </div>
     </div>

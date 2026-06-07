@@ -58,7 +58,7 @@ export function HistoryDrawer() {
             <span className="font-semibold tracking-[-0.01em] text-[#171717]">
               {t("history.title")}
             </span>
-            <span className="rounded-full bg-[#fafafa] px-2 py-0.5 font-mono text-[10px] uppercase text-[#666666] shadow-[var(--shadow-border)]">
+            <span className="rounded-full bg-[#fafafa] px-2 py-0.5 font-mono text-micro uppercase text-[#666666] shadow-[var(--shadow-border)]">
               {historyKind === "sqlite" ? "SQLite" : "local"}
             </span>
           </div>
@@ -100,7 +100,7 @@ export function HistoryDrawer() {
                 refreshHistory({ ...historyQuery, search: e.target.value })
               }
               placeholder={t("history.search")}
-              className="w-full rounded-md bg-white py-1.5 pl-8 pr-2 text-[13px] text-[#171717] shadow-[var(--shadow-ring)] outline-none focus:shadow-[0_0_0_1px_var(--color-focus)]"
+              className="w-full rounded-md bg-white py-1.5 pl-8 pr-2 text-body text-[#171717] shadow-[var(--shadow-ring)] outline-none focus:shadow-[0_0_0_1px_var(--color-focus)]"
             />
           </div>
         </div>
@@ -108,7 +108,7 @@ export function HistoryDrawer() {
         {/* List */}
         <div className="min-h-0 flex-1 overflow-auto">
           {history.length === 0 ? (
-            <div className="px-4 py-10 text-center text-[13px] text-[#6e6e6e]">
+            <div className="px-4 py-10 text-center text-body text-[#6e6e6e]">
               {t("history.empty")}
             </div>
           ) : (
@@ -124,10 +124,10 @@ export function HistoryDrawer() {
                       title={t("history.restore")}
                       className="min-w-0 flex-1 text-left"
                     >
-                      <div className="truncate font-mono text-[13px] text-[#171717]">
+                      <div className="truncate font-mono text-body text-[#171717]">
                         {e.title}
                       </div>
-                      <div className="mt-1.5 flex items-center gap-2 text-[11px] text-[#6e6e6e]">
+                      <div className="mt-1.5 flex items-center gap-2 text-micro text-[#6e6e6e]">
                         <span className="rounded-full bg-[#fafafa] px-1.5 py-0.5 font-mono text-[#666666] shadow-[var(--shadow-border)]">
                           {e.language}
                         </span>

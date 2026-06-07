@@ -43,8 +43,10 @@ export function EditorPane({
         readOnly,
         minimap: { enabled: false },
         fontSize,
+        // Keep this chain in sync with `--font-mono` in globals.css so the
+        // editor and the rest of the UI render the same monospace stack.
         fontFamily:
-          '"Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+          '"Geist Mono Variable", ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, Monaco, "Liberation Mono", "Courier New", monospace',
         fontLigatures: true,
         wordWrap: "on",
         scrollBeyondLastLine: false,

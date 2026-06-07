@@ -41,7 +41,7 @@ export function SwitchRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 py-1.5 text-[13px] text-[#4d4d4d]">
+    <label className="flex cursor-pointer items-center justify-between gap-3 py-1.5 text-body text-[#4d4d4d]">
       <span>{label}</span>
       <Switch checked={checked} onChange={onChange} label={label} />
     </label>

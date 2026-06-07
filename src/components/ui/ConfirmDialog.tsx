@@ -35,11 +35,11 @@ export function ConfirmDialog() {
           )}
           <div className="flex flex-col gap-1">
             {opts.title && (
-              <h2 className="text-[14px] font-semibold tracking-[-0.01em] text-[#171717]">
+              <h2 className="text-title font-semibold text-[#171717]">
                 {opts.title}
               </h2>
             )}
-            <p className="text-[13px] leading-relaxed text-[#4d4d4d]">
+            <p className="text-body leading-relaxed text-[#4d4d4d]">
               {opts.message}
             </p>
           </div>
@@ -47,7 +47,7 @@ export function ConfirmDialog() {
         <div className="flex items-center justify-end gap-2 px-5 py-3 shadow-[inset_0_1px_0_0_#ebebeb]">
           <button
             onClick={() => respond(false)}
-            className="rounded-md px-3 py-1.5 text-[13px] font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
+            className="rounded-md px-3 py-1.5 text-body font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
           >
             {cancelLabel}
           </button>
@@ -55,7 +55,7 @@ export function ConfirmDialog() {
             autoFocus
             onClick={() => respond(true)}
             className={
-              "rounded-md px-3 py-1.5 text-[13px] font-medium text-white transition-all active:scale-[0.97] " +
+              "rounded-md px-3 py-1.5 text-body font-medium text-white transition-all active:scale-[0.97] " +
               (opts.danger
                 ? "bg-[#e5484d] hover:bg-[#d13b40]"
                 : "bg-[#171717] hover:bg-black")
