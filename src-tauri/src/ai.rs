@@ -54,8 +54,25 @@ fn default_max_tokens() -> u32 {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AiResponse {
     pub text: String,
+    /// True when the model stopped because it hit `max_tokens` (output cut off).
+    pub truncated: bool,
+}
+
+/// Read the stop/finish reason from a full (non-streaming) completion and decide
+/// whether the output was cut off by the token limit.
+fn is_truncated(kind: &str, json: &serde_json::Value) -> bool {
+    let reason = if kind == "anthropic" {
+        json.get("stop_reason").and_then(|s| s.as_str())
+    } else {
+        json.get("choices")
+            .and_then(|c| c.get(0))
+            .and_then(|c| c.get("finish_reason"))
+            .and_then(|s| s.as_str())
+    };
+    matches!(reason, Some("length") | Some("max_tokens"))
 }
 
 fn trim_base(base: &str) -> String {
@@ -89,6 +106,7 @@ pub async fn ai_complete(req: AiRequest) -> Result<AiResponse, String> {
                 let url = format!("{base}/chat/completions");
                 let mut body = serde_json::json!({
                     "model": req.model,
+                    "max_tokens": req.max_tokens,
                     "temperature": req.temperature,
                     "stream": false,
                     "messages": [
@@ -152,7 +170,10 @@ pub async fn ai_complete(req: AiRequest) -> Result<AiResponse, String> {
     };
 
     match content {
-        Some(s) => Ok(AiResponse { text: s }),
+        Some(s) => Ok(AiResponse {
+            text: s,
+            truncated: is_truncated(&req.kind, &json),
+        }),
         None => Err(format!("could not parse completion from response: {text}")),
     }
 }
@@ -177,7 +198,8 @@ pub async fn ai_prewarm(base_url: String) -> Result<(), String> {
 #[serde(tag = "event", content = "data")]
 pub enum StreamEvent {
     Chunk(String),
-    Done,
+    /// Stream finished. `truncated` is true when the model hit `max_tokens`.
+    Done { truncated: bool },
     Error(String),
 }
 
@@ -203,6 +225,7 @@ fn stream_body(req: &AiRequest) -> (String, serde_json::Value, Vec<(String, Stri
         let url = format!("{base}/chat/completions");
         let mut body = serde_json::json!({
             "model": req.model,
+            "max_tokens": req.max_tokens,
             "temperature": req.temperature,
             "stream": true,
             "messages": [
@@ -240,6 +263,23 @@ fn extract_delta(kind: &str, json: &serde_json::Value) -> Option<String> {
     text.filter(|s| !s.is_empty()).map(|s| s.to_string())
 }
 
+/// Detect a max-tokens stop in one streaming SSE payload. OpenAI puts the reason
+/// on `choices[0].finish_reason`; Anthropic emits it on the `message_delta`
+/// event's `delta.stop_reason`.
+fn stream_truncated(kind: &str, json: &serde_json::Value) -> bool {
+    let reason = if kind == "anthropic" {
+        json.get("delta")
+            .and_then(|d| d.get("stop_reason"))
+            .and_then(|s| s.as_str())
+    } else {
+        json.get("choices")
+            .and_then(|c| c.get(0))
+            .and_then(|c| c.get("finish_reason"))
+            .and_then(|s| s.as_str())
+    };
+    matches!(reason, Some("length") | Some("max_tokens"))
+}
+
 #[tauri::command]
 pub async fn ai_complete_stream(
     req: AiRequest,
@@ -267,6 +307,7 @@ pub async fn ai_complete_stream(
 
     let mut stream = resp.bytes_stream();
     let mut buf = String::new();
+    let mut truncated = false;
 
     while let Some(item) = stream.next().await {
         let bytes = item.map_err(|e| format!("stream error: {e}"))?;
@@ -284,10 +325,13 @@ pub async fn ai_complete_stream(
             };
             let payload = payload.trim();
             if payload == "[DONE]" {
-                let _ = on_event.send(StreamEvent::Done);
+                let _ = on_event.send(StreamEvent::Done { truncated });
                 return Ok(());
             }
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(payload) {
+                if stream_truncated(&req.kind, &json) {
+                    truncated = true;
+                }
                 if let Some(delta) = extract_delta(&req.kind, &json) {
                     let _ = on_event.send(StreamEvent::Chunk(delta));
                 }
@@ -295,6 +339,6 @@ pub async fn ai_complete_stream(
         }
     }
 
-    let _ = on_event.send(StreamEvent::Done);
+    let _ = on_event.send(StreamEvent::Done { truncated });
     Ok(())
 }

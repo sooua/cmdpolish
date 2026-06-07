@@ -1,6 +1,6 @@
 [package]
 name = "cmdpolish"
-version = "0.1.4"
+version = "0.1.5"
 description = "Format. Redact. Review. Ship."
 authors = ["CmdPolish"]
 edition = "2021"

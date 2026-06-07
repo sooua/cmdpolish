@@ -121,7 +121,7 @@ const sres = await aiCompleteStream(
   { system: "S", user: "U" },
   (_d, full) => (streamed = full)
 );
-check("stream accumulates full", sres === "SELECT 1;", sres);
+check("stream accumulates full", sres.text === "SELECT 1;", sres.text);
 check("stream onChunk sees full", streamed === "SELECT 1;", streamed);
 
 console.log("Streaming (chunk split across reads):");
@@ -137,7 +137,22 @@ console.log("Streaming (chunk split across reads):");
   text: async () => "",
 });
 const split = await aiCompleteStream(openai, { system: "S", user: "U" }, () => {});
-check("stream handles split lines", split === "ok", split);
+check("stream handles split lines", split.text === "ok", split.text);
+
+console.log("Streaming (truncation detection):");
+(globalThis as any).fetch = async () => ({
+  ok: true,
+  status: 200,
+  body: sseStream([
+    'data: {"choices":[{"delta":{"content":"partial"}}]}\n',
+    'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n',
+    "data: [DONE]\n",
+  ]),
+  text: async () => "",
+});
+const cut = await aiCompleteStream(openai, { system: "S", user: "U" }, () => {});
+check("stream flags truncation on finish_reason length", cut.truncated === true, cut.truncated);
+check("stream not truncated normally", split.truncated === false, split.truncated);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);

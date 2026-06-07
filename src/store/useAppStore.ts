@@ -271,9 +271,12 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ output: partial })
       );
       const durationMs = Math.round(performance.now() - startedAt);
+      const warnings = res.truncated
+        ? [tFor(get().settings.locale)("warnings.truncated"), ...res.warnings]
+        : res.warnings;
       set({
         output: res.text,
-        warnings: res.warnings,
+        warnings,
         language: res.language,
         guard: review(res.text),
       });

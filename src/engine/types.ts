@@ -38,6 +38,8 @@ export type FormatResult = {
   language: Language;
   warnings: string[];
   changed: boolean;
+  /** True when the model hit its output-token limit and the result is cut off. */
+  truncated?: boolean;
 };
 
 export interface Formatter {

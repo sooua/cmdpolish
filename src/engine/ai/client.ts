@@ -43,25 +43,30 @@ export async function aiComplete(
 
 type StreamEvent =
   | { event: "Chunk"; data: string }
-  | { event: "Done" }
+  | { event: "Done"; data: { truncated: boolean } }
   | { event: "Error"; data: string };
+
+/** Streaming completion result: the full text plus whether it was cut off. */
+export type StreamResult = { text: string; truncated: boolean };
 
 /**
  * Streaming completion. `onChunk(delta, full)` is called as tokens arrive.
- * Resolves with the full accumulated text. In Tauri this uses a Rust IPC
- * Channel; in the browser it parses the SSE response directly (local providers).
+ * Resolves with the full accumulated text and a `truncated` flag (true when the
+ * model stopped at `max_tokens`). In Tauri this uses a Rust IPC Channel; in the
+ * browser it parses the SSE response directly (local providers).
  */
 export async function aiCompleteStream(
   provider: AiProvider,
   message: AiMessage,
   onChunk: (delta: string, full: string) => void,
   opts: AiCompleteOptions = {}
-): Promise<string> {
+): Promise<StreamResult> {
   if (!provider.baseUrl || !provider.model) {
     throw new Error("AI provider is not configured (missing base URL or model).");
   }
 
   let full = "";
+  let truncated = false;
 
   if (isTauri()) {
     const { invoke, Channel } = await import("@tauri-apps/api/core");
@@ -77,6 +82,7 @@ export async function aiCompleteStream(
         full += msg.data;
         onChunk(msg.data, full);
       } else if (msg.event === "Done") {
+        truncated = msg.data?.truncated ?? false;
         settle?.();
       } else if (msg.event === "Error") {
         failure?.(new Error(msg.data));
@@ -97,7 +103,7 @@ export async function aiCompleteStream(
       onEvent: channel,
     });
     await done;
-    return full;
+    return { text: full, truncated };
   }
 
   // Browser SSE fallback (works for local Ollama / permissive-CORS endpoints).
@@ -132,6 +138,7 @@ export async function aiCompleteStream(
             }
           : {
               model: provider.model,
+              max_tokens: opts.maxTokens ?? 4096,
               temperature: opts.temperature ?? 0,
               stream: true,
               ...(provider.disableThinking
@@ -162,9 +169,13 @@ export async function aiCompleteStream(
       buf = buf.slice(nl + 1);
       if (!line.startsWith("data:")) continue;
       const payload = line.slice(5).trim();
-      if (payload === "[DONE]") return full;
+      if (payload === "[DONE]") return { text: full, truncated };
       try {
         const json = JSON.parse(payload);
+        const reason = isAnthropic
+          ? json?.delta?.stop_reason
+          : json?.choices?.[0]?.finish_reason;
+        if (reason === "length" || reason === "max_tokens") truncated = true;
         const delta = isAnthropic
           ? json?.delta?.text
           : json?.choices?.[0]?.delta?.content;
@@ -177,7 +188,7 @@ export async function aiCompleteStream(
       }
     }
   }
-  return full;
+  return { text: full, truncated };
 }
 
 /**

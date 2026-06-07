@@ -18,6 +18,8 @@ export const messages = {
 
     "overlay.generating": "Generating…",
     "warnings.none": "No warnings.",
+    "warnings.truncated":
+      "Output was cut off at the model's max length. Split the input into smaller parts, or switch to a model with a larger output limit (e.g. Claude).",
 
     "ai.panel.processing": "Working…",
     "ai.panel.error": "AI error: {msg}",
@@ -139,6 +141,8 @@ export const messages = {
 
     "overlay.generating": "生成中…",
     "warnings.none": "没有警告。",
+    "warnings.truncated":
+      "输出已达模型单次最大长度被截断。请将输入拆分成更小的部分，或改用支持更长输出的模型（如 Claude）。",
 
     "ai.panel.processing": "处理中…",
     "ai.panel.error": "AI 错误:{msg}",

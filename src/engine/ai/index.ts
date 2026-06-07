@@ -4,6 +4,19 @@ import { aiComplete, aiCompleteStream } from "./client";
 import { buildFormatPrompt, stripFence } from "./prompts";
 import type { AiProvider, AiTask } from "./types";
 
+/**
+ * Pick an output-token budget for a reformat. The output is roughly the size of
+ * the input, so we scale with it (≈3 chars/token, +25% headroom) and clamp to a
+ * model-safe ceiling: Claude allows large single responses, while most
+ * OpenAI-compatible models (DeepSeek, Qwen, …) cap output around 8K. A request
+ * above the model's real limit would 400, so we stay conservative per kind.
+ */
+function formatMaxTokens(text: string, provider: AiProvider): number {
+  const estimate = Math.ceil((text.length / 3) * 1.25);
+  const ceiling = provider.kind === "anthropic" ? 32768 : 8192;
+  return Math.min(Math.max(estimate, 4096), ceiling);
+}
+
 export type { AiProvider, AiTask, ProviderKind } from "./types";
 export {
   PROVIDER_PRESETS,
@@ -26,7 +39,11 @@ export async function aiFormat(
   provider: AiProvider
 ): Promise<FormatResult> {
   const out = normalizeHeredocTerminators(
-    stripFence(await aiComplete(provider, buildFormatPrompt(text, language)))
+    stripFence(
+      await aiComplete(provider, buildFormatPrompt(text, language), {
+        maxTokens: formatMaxTokens(text, provider),
+      })
+    )
   );
   return {
     text: out,
@@ -46,13 +63,14 @@ export async function aiFormatStream(
   provider: AiProvider,
   onText: (partial: string) => void
 ): Promise<FormatResult> {
-  const full = await aiCompleteStream(
+  const { text: full, truncated } = await aiCompleteStream(
     provider,
     buildFormatPrompt(text, language),
-    (_delta, acc) => onText(acc)
+    (_delta, acc) => onText(acc),
+    { maxTokens: formatMaxTokens(text, provider) }
   );
   const out = normalizeHeredocTerminators(stripFence(full));
-  return { text: out, language, warnings: [], changed: out !== text };
+  return { text: out, language, warnings: [], changed: out !== text, truncated };
 }
 
 /** Run an arbitrary AI task, returning raw text (caller decides where it goes). */
