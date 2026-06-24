@@ -14,13 +14,13 @@
  * that legitimately contain an indented delimiter as body data are left alone.
  */
 
-// Matches an opener like  <<EOF  <<-EOF  <<'EOF'  << "EOF"  <<-"EOF"
-const OPENER = /<<(-?)\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\2/g;
+// Matches an opener like  <<EOF  <<-EOF  <<~EOF  <<'EOF'  << "EOF"  <<-"EOF"
+const OPENER = /<<([-~]?)\s*(['"]?)([A-Za-z_][A-Za-z0-9_]*)\2/g;
 
 interface Pending {
   delim: string;
-  /** `<<-` form: the closing delimiter may be preceded by tabs. */
-  dashed: boolean;
+  /** `<<-` strips leading tabs; `<<~` strips all leading whitespace. */
+  mode: "" | "-" | "~";
 }
 
 export function normalizeHeredocTerminators(text: string): string {
@@ -33,17 +33,17 @@ export function normalizeHeredocTerminators(text: string): string {
     OPENER.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = OPENER.exec(lines[i])) !== null) {
-      pending.push({ delim: m[3], dashed: m[1] === "-" });
+      pending.push({ delim: m[3], mode: m[1] as "" | "-" | "~" });
     }
     i += 1;
 
     // Resolve each heredoc body against the lines that follow.
-    for (const { delim, dashed } of pending) {
+    for (const { delim, mode } of pending) {
       let fixIdx = -1; // first repairable (indented) terminator candidate
       let j = i;
       for (; j < lines.length; j += 1) {
         const line = lines[j];
-        if (isValidTerminator(line, delim, dashed)) {
+        if (isValidTerminator(line, delim, mode)) {
           break; // already correct — nothing to repair
         }
         if (fixIdx === -1 && line.trim() === delim) {
@@ -65,7 +65,14 @@ export function normalizeHeredocTerminators(text: string): string {
   return lines.join("\n");
 }
 
-function isValidTerminator(line: string, delim: string, dashed: boolean): boolean {
-  // `<<-` allows leading tabs only; plain form requires column 0.
-  return dashed ? line.replace(/^\t+/, "") === delim : line === delim;
+function isValidTerminator(
+  line: string,
+  delim: string,
+  mode: "" | "-" | "~"
+): boolean {
+  // `<<-` allows leading tabs; `<<~` allows any leading whitespace; the plain
+  // form requires the delimiter at column 0.
+  if (mode === "~") return line.replace(/^\s+/, "") === delim;
+  if (mode === "-") return line.replace(/^\t+/, "") === delim;
+  return line === delim;
 }

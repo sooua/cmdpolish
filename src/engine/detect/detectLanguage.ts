@@ -89,7 +89,9 @@ export function detectLanguage(raw: string): DetectResult {
   const envLines = text
     .split(/\r?\n/)
     .filter((l) => l.trim() && !l.trim().startsWith("#"));
-  const envMatches = envLines.filter((l) => /^[A-Z][A-Z0-9_]*=/.test(l.trim()));
+  const envMatches = envLines.filter((l) =>
+    /^(?:export\s+)?[A-Za-z_][A-Za-z0-9_]*=/.test(l.trim())
+  );
   if (envMatches.length >= 1 && envMatches.length === envLines.length) {
     add("env", 4 + Math.min(envMatches.length, 4), "all lines are KEY=value");
   } else if (envMatches.length >= 2) {
@@ -97,8 +99,13 @@ export function detectLanguage(raw: string): DetectResult {
   }
 
   // ---- YAML ----
+  // Require ≥2 mapping lines so a single English "error: ..." sentence or an
+  // HTTP header doesn't get scored as YAML.
   if (/^---\s*$/m.test(text)) add("yaml", 3, "contains --- document separator");
-  if (/^\s*[\w.-]+:\s+\S/m.test(text)) add("yaml", 3, "contains key: value");
+  const yamlMapLines = (text.match(/^\s*[\w.-]+:\s+\S/gm) ?? []).length;
+  // A single "word: text" line is ambiguous with prose, so it needs a second
+  // YAML signal (another mapping, a list item, or ---) to score.
+  if (yamlMapLines >= 2) add("yaml", 3, "multiple key: value mappings");
   if (/^\s+-\s+\S/m.test(text)) add("yaml", 1, "contains list items");
 
   // ---- SQL ----

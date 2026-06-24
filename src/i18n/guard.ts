@@ -89,6 +89,67 @@ const zh: Record<string, GuardText> = {
     message: "检测到破坏性语句(DROP / TRUNCATE / ALTER … DROP COLUMN)。",
     suggestion: "执行结构/数据删除前确保已备份。",
   },
+  "shell.eval-untrusted": {
+    title: "eval 执行动态输入",
+    message: "对变量或命令替换执行 eval 会运行任意代码。",
+    suggestion: "避免使用 eval;先展开并检查内容再执行。",
+  },
+  "shell.source-process-sub": {
+    title: "source 下载的脚本",
+    message: "source 一个下载来的脚本会在你的 shell 里运行未经审查的代码。",
+    suggestion: "先下载脚本、读一遍,再 source。",
+  },
+  "shell.crontab-remove": {
+    title: "删除全部定时任务",
+    message: "crontab -r 会无确认地删除该用户的整个 crontab。",
+    suggestion: "先用 crontab -l 备份,或用 crontab -e 编辑。",
+  },
+  "shell.disable-selinux": {
+    title: "关闭 SELinux 强制",
+    message: "关闭 SELinux 会移除强制访问控制保护。",
+  },
+  "shell.git-force-push": {
+    title: "强制推送",
+    message: "git push --force 可能覆盖共享历史和他人的提交。",
+    suggestion: "优先用 --force-with-lease,避免对共享分支强推。",
+  },
+  "shell.git-reset-hard": {
+    title: "硬重置",
+    message: "git reset --hard 会不可逆地丢弃所有未提交改动。",
+    suggestion: "若可能需要找回,先 stash 或提交。",
+  },
+  "shell.git-clean": {
+    title: "强制清理未跟踪文件",
+    message: "git clean -f 会永久删除未跟踪的文件。",
+    suggestion: "先运行 git clean -n 预览将被删除的内容。",
+  },
+  "docker.socket-mount": {
+    title: "挂载 Docker socket",
+    message: "挂载 /var/run/docker.sock 等于给容器完全的宿主机控制权(容器逃逸)。",
+    suggestion: "不要把 Docker socket 暴露给容器。",
+  },
+  "docker.privileged": {
+    title: "特权容器",
+    message: "--privileged 会移除容器隔离并暴露宿主机。",
+    suggestion: "只授予你确实需要的 --cap-add 能力。",
+  },
+  "k8s.delete-pv": {
+    title: "删除持久卷",
+    message: "删除 PV/PVC 可能销毁应用的持久化数据。",
+  },
+  "aws.s3-rm-recursive": {
+    title: "递归删除 S3",
+    message: "aws s3 rm --recursive 会永久删除该前缀下的所有对象。",
+    suggestion: "仔细核对 bucket/前缀;可先用 --dryrun。",
+  },
+  "aws.ec2-terminate": {
+    title: "终止 EC2 实例",
+    message: "终止实例会销毁实例及其实例存储数据。",
+  },
+  "aws.kms-delete-key": {
+    title: "计划删除 KMS 密钥",
+    message: "删除 KMS 密钥会让它加密过的一切永久无法解密。",
+  },
 };
 
 const TABLES: Partial<Record<Locale, Record<string, GuardText>>> = { zh };

@@ -12,9 +12,16 @@ function lineOf(text: string, index: number): number {
   return text.slice(0, index).split(/\n/).length;
 }
 
-/** Strip string literals so DELETE/UPDATE checks ignore WHERE inside strings. */
+/**
+ * Strip string literals and comments so DELETE/UPDATE checks ignore a WHERE that
+ * only appears inside a string or a comment. Comments are blanked (not removed)
+ * so byte offsets — and therefore reported line numbers — stay correct.
+ */
 function stripStrings(sql: string): string {
-  return sql.replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, "''");
+  return sql
+    .replace(/--[^\n]*/g, (m) => " ".repeat(m.length)) // line comments
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, " ")) // block comments
+    .replace(/'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"/g, "''");
 }
 
 /** Detect DELETE/UPDATE statements missing a WHERE clause. */
@@ -73,11 +80,24 @@ function reviewSql(text: string): GuardFinding[] {
 export function review(text: string): GuardResult {
   const findings: GuardFinding[] = [];
 
+  const MATCH_CAP = 50;
   for (const rule of GUARD_RULES) {
     const re = new RegExp(rule.test.source, rule.test.flags.includes("g") ? rule.test.flags : rule.test.flags + "g");
     let m: RegExpExecArray | null;
     let guard = 0;
-    while ((m = re.exec(text)) !== null && guard++ < 50) {
+    while ((m = re.exec(text)) !== null) {
+      if (guard++ >= MATCH_CAP) {
+        // Don't silently swallow further hits — note that more exist.
+        findings.push({
+          ruleId: rule.ruleId,
+          title: rule.title,
+          severity: rule.severity,
+          message: `${rule.message} (showing first ${MATCH_CAP} matches; more occurrences exist)`,
+          suggestion: rule.suggestion,
+          line: lineOf(text, m.index),
+        });
+        break;
+      }
       findings.push({
         ruleId: rule.ruleId,
         title: rule.title,

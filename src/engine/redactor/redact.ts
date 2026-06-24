@@ -53,8 +53,12 @@ export function redact(
         re.lastIndex++;
         continue;
       }
-      const groupIdx = pattern.group ?? 0;
-      const value = m[groupIdx] ?? m[0];
+      let value: string | undefined;
+      if (pattern.valueGroups) {
+        value = pattern.valueGroups.map((g) => m![g]).find((v) => v);
+      } else {
+        value = m[pattern.group ?? 0] ?? m[0];
+      }
       if (!value) continue;
       const start = m.index + m[0].indexOf(value);
       const end = start + value.length;

@@ -23,7 +23,8 @@ export const GUARD_RULES: GuardRule[] = [
     ruleId: "shell.chmod-777-root",
     title: "World-writable permissions on root",
     severity: "critical",
-    test: /\bchmod\s+(-R\s+)?0?777\s+\//,
+    // Numeric 777/0777 or symbolic a=rwx / ugo=rwx on a top-level path.
+    test: /\bchmod\s+(-R\s+)?(0?777|a=rwx|ugo=rwx|u=rwx,g=rwx,o=rwx)\s+\//,
     message: "chmod -R 777 / opens the whole system to every user.",
     suggestion: "Scope permissions to the specific directory that needs them.",
   },
@@ -64,13 +65,85 @@ export const GUARD_RULES: GuardRule[] = [
     message: "Stopping SSH may lock you out of a remote machine.",
     suggestion: "Make sure you have console access before disabling SSH.",
   },
+  {
+    ruleId: "shell.eval-untrusted",
+    title: "eval of dynamic input",
+    severity: "high",
+    test: /\beval\s+["'`]?\$|\beval\s+["'`]?\$\(|\beval\s+["'`]?`/,
+    message: "eval on a variable or command substitution executes arbitrary code.",
+    suggestion: "Avoid eval; expand and inspect the value before running it.",
+  },
+  {
+    ruleId: "shell.source-process-sub",
+    title: "Source a downloaded script",
+    severity: "high",
+    test: /\b(?:source|\.)\s+<\(\s*(?:curl|wget)\b/,
+    message: "Sourcing a downloaded script runs unvetted code in your shell.",
+    suggestion: "Download the script, read it, then source it.",
+  },
+  {
+    ruleId: "shell.crontab-remove",
+    title: "Remove all cron jobs",
+    severity: "high",
+    test: /\bcrontab\s+-r\b/,
+    message: "crontab -r deletes the user's entire crontab with no confirmation.",
+    suggestion: "Use 'crontab -l' to back up first, or edit with 'crontab -e'.",
+  },
+  {
+    ruleId: "shell.disable-selinux",
+    title: "Disable SELinux enforcement",
+    severity: "high",
+    test: /\bsetenforce\s+0\b|\bSELINUX=disabled\b/,
+    message: "Disabling SELinux removes mandatory access-control protection.",
+  },
+  {
+    ruleId: "shell.git-force-push",
+    title: "Force push",
+    severity: "high",
+    test: /\bgit\s+push\b[^\n]*\s(?:-f\b|--force\b)/,
+    message: "git push --force can overwrite shared history and others' commits.",
+    suggestion: "Prefer --force-with-lease, and avoid force-pushing shared branches.",
+  },
+  {
+    ruleId: "shell.git-reset-hard",
+    title: "Hard reset",
+    severity: "medium",
+    test: /\bgit\s+reset\s+--hard\b/,
+    message: "git reset --hard discards all uncommitted changes irreversibly.",
+    suggestion: "Stash or commit first if you might need the changes back.",
+  },
+  {
+    ruleId: "shell.git-clean",
+    title: "Force-clean untracked files",
+    severity: "medium",
+    test: /\bgit\s+clean\b[^\n]*\s-[a-z]*f/,
+    message: "git clean -f permanently deletes untracked files.",
+    suggestion: "Run 'git clean -n' first to preview what will be removed.",
+  },
 
   // ---- Docker ----
+  {
+    ruleId: "docker.socket-mount",
+    title: "Mount the Docker socket",
+    severity: "critical",
+    test: /-v\s+\/var\/run\/docker\.sock|--mount[^\n]*docker\.sock/,
+    message: "Mounting /var/run/docker.sock grants full host control (container escape).",
+    suggestion: "Avoid exposing the Docker socket to containers.",
+  },
+  {
+    ruleId: "docker.privileged",
+    title: "Privileged container",
+    severity: "high",
+    test: /\bdocker\s+run\b[^\n]*--privileged\b/,
+    message: "--privileged removes container isolation and exposes the host.",
+    suggestion: "Grant only the specific --cap-add capabilities you need.",
+  },
   {
     ruleId: "docker.compose-down-volumes",
     title: "docker compose down -v",
     severity: "high",
-    test: /\bdocker\s+(compose|-compose)\s+down\b[^\n]*\s-v\b|--volumes\b/,
+    // Group the -v / --volumes alternation so it only fires within a compose down.
+    test: /\bdocker(?:\s+compose|-compose)\s+down\b[^\n]*(?:\s-v\b|--volumes\b)/,
     message: "down -v deletes named volumes — database data can be lost.",
     suggestion: "Confirm volumes are backed up before running this.",
   },
@@ -92,11 +165,19 @@ export const GUARD_RULES: GuardRule[] = [
     ruleId: "docker.force-remove",
     title: "Force remove container/image",
     severity: "medium",
-    test: /\bdocker\s+rm[i]?\s+(-[A-Za-z]*\s+)*-f\b/,
+    // Matches `docker rm -f`, `docker rmi -f`, and `docker container rm -f`.
+    test: /\bdocker\s+(?:container\s+|image\s+)?rmi?\s+(-[A-Za-z]*\s+)*-[A-Za-z]*f\b/,
     message: "Force removal skips safety checks on running resources.",
   },
 
   // ---- Kubernetes ----
+  {
+    ruleId: "k8s.delete-pv",
+    title: "Delete persistent volume",
+    severity: "high",
+    test: /\bkubectl\s+delete\s+(pv|pvc|persistentvolume(?:claim)?s?)\b/,
+    message: "Deleting a PV/PVC can destroy persistent application data.",
+  },
   {
     ruleId: "k8s.delete-namespace",
     title: "Delete namespace",
@@ -120,6 +201,30 @@ export const GUARD_RULES: GuardRule[] = [
     suggestion: "Download and inspect the manifest before applying.",
   },
 
+  // ---- Cloud CLIs ----
+  {
+    ruleId: "aws.s3-rm-recursive",
+    title: "Recursive S3 delete",
+    severity: "high",
+    test: /\baws\s+s3\s+rm\b[^\n]*--recursive\b/,
+    message: "aws s3 rm --recursive permanently deletes every object under the prefix.",
+    suggestion: "Double-check the bucket/prefix; consider --dryrun first.",
+  },
+  {
+    ruleId: "aws.ec2-terminate",
+    title: "Terminate EC2 instances",
+    severity: "high",
+    test: /\baws\s+ec2\s+terminate-instances\b/,
+    message: "Terminating instances destroys them and their instance-store data.",
+  },
+  {
+    ruleId: "aws.kms-delete-key",
+    title: "Schedule KMS key deletion",
+    severity: "critical",
+    test: /\baws\s+kms\s+schedule-key-deletion\b/,
+    message: "Deleting a KMS key makes everything it encrypted permanently unreadable.",
+  },
+
   // ---- curl | bash ----
   {
     ruleId: "shell.curl-pipe-shell",
@@ -132,4 +237,5 @@ export const GUARD_RULES: GuardRule[] = [
 ];
 
 // ---- SQL rules need structural checks, handled separately ----
-export const SQL_DESTRUCTIVE = /\b(DROP\s+(DATABASE|TABLE)|TRUNCATE(\s+TABLE)?|ALTER\s+TABLE\s+\w+\s+DROP\s+COLUMN)\b/i;
+export const SQL_DESTRUCTIVE =
+  /\b(DROP\s+(DATABASE|SCHEMA|TABLE|INDEX)|TRUNCATE(\s+TABLE)?|ALTER\s+TABLE\s+\w+\s+DROP\s+COLUMN|GRANT\s+ALL|xp_cmdshell|INTO\s+OUTFILE|INTO\s+DUMPFILE|LOAD_FILE)\b/i;
