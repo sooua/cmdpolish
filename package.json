@@ -1,7 +1,7 @@
 {
   "name": "cmdpolish",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.2.0",
   "type": "module",
   "description": "Format. Redact. Review. Ship. — desktop tool for cleaning up commands, code and config.",
   "scripts": {
