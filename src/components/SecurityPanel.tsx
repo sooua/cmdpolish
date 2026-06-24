@@ -22,7 +22,7 @@ export function SecurityPanel({
   const clean = guard.level === "none" && findings.length === 0;
   if (clean) {
     return (
-      <div className="flex items-center gap-2 px-4 py-3 text-body text-[#15803d]">
+      <div className="flex items-center gap-2 px-4 py-3 text-body text-[var(--color-success)]">
         <ShieldCheck size={16} />
         <span>{t("security.allClean")}</span>
       </div>
@@ -34,8 +34,8 @@ export function SecurityPanel({
       {/* Dangerous-command review */}
       {guard.level !== "none" && (
         <section className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-body font-medium text-[#171717]">
-            <ShieldAlert size={15} className="text-[#f97316]" />
+          <div className="flex items-center gap-2 text-body font-medium text-[var(--color-fg)]">
+            <ShieldAlert size={15} className="text-[var(--color-warn-dot)]" />
             <span>
               {t("security.riskCount", {
                 label: t(`risk.${guard.level}` as MsgKey),
@@ -57,7 +57,7 @@ export function SecurityPanel({
                     />
                     {g.title}
                     {f.line ? (
-                      <span className="text-[#6e6e6e]">line {f.line}</span>
+                      <span className="text-[var(--color-muted-2)]">line {f.line}</span>
                     ) : null}
                   </div>
                   <p className="mt-1 opacity-90">{g.message}</p>
@@ -74,8 +74,8 @@ export function SecurityPanel({
       {/* Redaction findings */}
       {findings.length > 0 && (
         <section className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 text-body font-medium text-[#171717]">
-            <EyeOff size={15} className="text-[#7928ca]" />
+          <div className="flex items-center gap-2 text-body font-medium text-[var(--color-fg)]">
+            <EyeOff size={15} className="text-[var(--color-purple)]" />
             <span>{t("security.redactedCount", { n: findings.length })}</span>
           </div>
           <ul className="flex flex-col gap-1">
@@ -88,10 +88,10 @@ export function SecurityPanel({
                   <span
                     className={`inline-block h-2 w-2 rounded-full ${SEVERITY_DOT[f.severity]}`}
                   />
-                  <span className="text-[#171717]">{f.type}</span>
+                  <span className="text-[var(--color-fg)]">{f.type}</span>
                 </span>
                 <code
-                  className="truncate font-mono text-[#666666]"
+                  className="truncate font-mono text-[var(--color-fg-muted)]"
                   title={f.replacement}
                 >
                   {f.replacement}
@@ -103,7 +103,7 @@ export function SecurityPanel({
       )}
 
       {guard.level !== "none" && findings.length === 0 && (
-        <p className="flex items-center gap-1.5 text-micro text-[#6e6e6e]">
+        <p className="flex items-center gap-1.5 text-micro text-[var(--color-muted-2)]">
           <Lock size={11} /> {t("security.redactHint")}
         </p>
       )}

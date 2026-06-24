@@ -1,5 +1,6 @@
 import Editor from "@monaco-editor/react";
 import type { Language } from "../engine/types";
+import { useAppStore } from "../store/useAppStore";
 
 const MONACO_LANG: Record<Language, string> = {
   bash: "shell",
@@ -32,10 +33,11 @@ export function EditorPane({
   fontSize = 13,
   onChange,
 }: Props) {
+  const resolvedTheme = useAppStore((s) => s.resolvedTheme);
   return (
     <Editor
       height="100%"
-      theme="cmdpolish-light"
+      theme={resolvedTheme === "dark" ? "cmdpolish-dark" : "cmdpolish-light"}
       language={MONACO_LANG[language] ?? "plaintext"}
       value={value}
       onChange={(v) => onChange?.(v ?? "")}

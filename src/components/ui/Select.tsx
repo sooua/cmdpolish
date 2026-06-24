@@ -15,7 +15,7 @@ export function Select({ className = "", density = "md", ...props }: Props) {
       <select
         {...props}
         className={
-          "w-full appearance-none rounded-md bg-white text-body text-[#171717] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)] " +
+          "w-full appearance-none rounded-md bg-[var(--color-panel)] text-body text-[var(--color-fg)] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)] " +
           pad +
           " " +
           className
@@ -23,7 +23,7 @@ export function Select({ className = "", density = "md", ...props }: Props) {
       />
       <ChevronDown
         size={13}
-        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#6e6e6e]"
+        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[var(--color-muted-2)]"
       />
     </div>
   );

@@ -26,7 +26,7 @@ export function AiActionsMenu() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-body font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
+        className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-body font-medium text-[var(--color-fg)] shadow-[var(--shadow-ring)] transition-all hover:bg-[var(--color-surface-2)] active:scale-[0.97]"
         title={t("aiActions.title")}
       >
         {aiBusy ? (
@@ -35,13 +35,13 @@ export function AiActionsMenu() {
           <Wand2 size={15} />
         )}
         {t("aiActions.title")}
-        <ChevronDown size={13} className="text-[#6e6e6e]" />
+        <ChevronDown size={13} className="text-[var(--color-muted-2)]" />
       </button>
 
       {open && (
-        <div className="animate-pop-up absolute bottom-full left-0 z-20 mb-1.5 w-72 overflow-hidden rounded-xl bg-white p-1 shadow-[var(--shadow-pop)]">
+        <div className="animate-pop-up absolute bottom-full left-0 z-20 mb-1.5 w-72 overflow-hidden rounded-xl bg-[var(--color-panel)] p-1 shadow-[var(--shadow-pop)]">
           {!ready && (
-            <div className="px-3 py-2 text-caption text-[#9a3412]">
+            <div className="px-3 py-2 text-caption text-[var(--color-warn)]">
               {t("aiActions.needProvider")}
             </div>
           )}
@@ -53,12 +53,12 @@ export function AiActionsMenu() {
                 runTask(task);
                 setOpen(false);
               }}
-              className="flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-[#fafafa] disabled:opacity-40"
+              className="flex w-full flex-col items-start gap-0.5 rounded-md px-3 py-2 text-left transition-colors hover:bg-[var(--color-surface-2)] disabled:opacity-40"
             >
-              <span className="text-body text-[#171717]">
+              <span className="text-body text-[var(--color-fg)]">
                 {t(`task.${task.id}.label` as MsgKey)}
               </span>
-              <span className="text-micro text-[#6e6e6e]">
+              <span className="text-micro text-[var(--color-muted-2)]">
                 {t(`task.${task.id}.hint` as MsgKey)}
               </span>
             </button>

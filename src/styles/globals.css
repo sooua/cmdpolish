@@ -54,6 +54,40 @@
 }
 
 :root {
+  color-scheme: light;
+
+  /* Semantic palette (light). Dark mode overrides these under
+   * [data-theme="dark"]; components reference the var(), never raw hex. */
+  --color-overlay: rgba(23, 23, 23, 0.2);
+  --color-overlay-panel: rgba(255, 255, 255, 0.6);
+  --color-muted-2: #6e6e6e;
+  --color-faint: #a3a3a3;
+  --color-track: #e2e2e2;
+
+  --color-primary: #171717;
+  --color-primary-hover: #000000;
+  --color-on-primary: #ffffff;
+
+  --color-success: #15803d;
+  --color-danger: #e5484d;
+  --color-danger-hover: #d13b40;
+  --color-danger-strong: #b91c1c;
+  --color-danger-dot: #ef4444;
+  --color-danger-pale: #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-warn: #9a3412;
+  --color-warn-dot: #f97316;
+  --color-warn-pale: #fff7ed;
+  --color-warn-border: #fed7aa;
+  --color-warn-med: #92400e;
+  --color-warn-med-dot: #f59e0b;
+  --color-warn-med-pale: #fffbeb;
+  --color-warn-med-border: #fde68a;
+  --color-purple: #7928ca;
+
+  --color-badge-border: #bfdbfe;
+  --color-badge-bg-hover: #dceefe;
+
   /* Signature shadow-as-border + elevation stacks */
   --shadow-border: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
   --shadow-ring: rgb(235, 235, 235) 0px 0px 0px 1px;
@@ -62,7 +96,67 @@
   --shadow-pop: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.04) 0px 2px 2px, rgba(0, 0, 0, 0.04) 0px 8px 8px -8px,
     #fafafa 0px 0px 0px 1px;
-  --focus-ring: 0 0 0 2px #fff, 0 0 0 4px var(--color-focus);
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-focus);
+}
+
+/* ------------------------------------------------------------------ *
+ * Dark theme — same structure, inverted achromatic canvas. Toggled by
+ * setting data-theme="dark" on <html> (see the store's theme setting).
+ * ------------------------------------------------------------------ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #0a0a0a;
+  --color-panel: #0f0f0f;
+  --color-surface-2: #1a1a1a;
+  --color-border: #2a2a2a;
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+  --color-fg: #ededed;
+  --color-fg-secondary: #b4b4b4;
+  --color-fg-muted: #8f8f8f;
+  --color-fg-faint: #707070;
+  --color-muted-2: #9a9a9a;
+  --color-faint: #6b6b6b;
+  --color-track: #333333;
+
+  --color-accent: #3b91f5;
+  --color-link: #3b91f5;
+  --color-focus: hsla(212, 100%, 62%, 1);
+  --color-badge-bg: #11243a;
+  --color-badge-text: #6fb1ff;
+  --color-badge-border: #1e3a5f;
+  --color-badge-bg-hover: #16304d;
+
+  --color-overlay: rgba(0, 0, 0, 0.6);
+  --color-overlay-panel: rgba(15, 15, 15, 0.7);
+
+  --color-primary: #ededed;
+  --color-primary-hover: #ffffff;
+  --color-on-primary: #0a0a0a;
+
+  --color-success: #4ec77f;
+  --color-danger: #ff6166;
+  --color-danger-hover: #ff7a7e;
+  --color-danger-strong: #ff8a8a;
+  --color-danger-dot: #ff6166;
+  --color-danger-pale: #2a1416;
+  --color-danger-border: #4a2326;
+  --color-warn: #fb923c;
+  --color-warn-dot: #fb923c;
+  --color-warn-pale: #2a1c0f;
+  --color-warn-border: #4a330f;
+  --color-warn-med: #fbbf24;
+  --color-warn-med-dot: #fbbf24;
+  --color-warn-med-pale: #241f0f;
+  --color-warn-med-border: #3d3414;
+  --color-purple: #c084fc;
+
+  --shadow-border: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
+  --shadow-ring: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
+  --shadow-card: rgba(0, 0, 0, 0.5) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.4) 0px 2px 2px, rgba(255, 255, 255, 0.04) 0px 0px 0px 1px;
+  --shadow-pop: rgba(255, 255, 255, 0.08) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.5) 0px 2px 8px, rgba(0, 0, 0, 0.5) 0px 8px 24px -8px;
 }
 
 html,
@@ -94,6 +188,9 @@ kbd,
   background-color: hsla(0, 0%, 92%, 1);
   color: var(--color-fg);
 }
+:root[data-theme="dark"] ::selection {
+  background-color: hsla(0, 0%, 26%, 1);
+}
 
 /* Give Monaco's scrollbar lane a solid (opaque) background; the slider keeps
  * its natural idle fade on top. */
@@ -110,6 +207,16 @@ kbd,
 }
 .monaco-editor .scrollbar .slider.active {
   background: #8c8c8c !important;
+}
+:root[data-theme="dark"] .monaco-editor .scrollbar.vertical,
+:root[data-theme="dark"] .monaco-editor .scrollbar.horizontal {
+  background: #161616 !important;
+}
+:root[data-theme="dark"] .monaco-editor .scrollbar .slider {
+  background: #3a3a3a !important;
+}
+:root[data-theme="dark"] .monaco-editor .scrollbar .slider:hover {
+  background: #4a4a4a !important;
 }
 
 /* Light, whisper-weight scrollbars */
@@ -128,6 +235,16 @@ kbd,
 }
 *::-webkit-scrollbar-thumb:hover {
   background: #d4d4d4;
+}
+:root[data-theme="dark"] * {
+  scrollbar-color: #3a3a3a transparent;
+}
+:root[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: #2e2e2e;
+  border-color: #0a0a0a;
+}
+:root[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
 }
 
 /* Utility: the shadow-border surface used everywhere */

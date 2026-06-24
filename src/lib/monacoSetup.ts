@@ -52,4 +52,37 @@ monaco.editor.defineTheme("cmdpolish-light", {
   },
 });
 
+// Dark counterpart — mirrors the dark canvas tokens in globals.css.
+monaco.editor.defineTheme("cmdpolish-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "", foreground: "ededed" },
+    { token: "comment", foreground: "6e6e6e", fontStyle: "italic" },
+    { token: "string", foreground: "6fb1ff" },
+    { token: "number", foreground: "c084fc" },
+    { token: "keyword", foreground: "ff67a3" },
+    { token: "type", foreground: "6fb1ff" },
+    { token: "delimiter", foreground: "b4b4b4" },
+    { token: "variable", foreground: "ededed" },
+  ],
+  colors: {
+    "editor.background": "#0a0a0a",
+    "editor.foreground": "#ededed",
+    "editorLineNumber.foreground": "#3a3a3a",
+    "editorLineNumber.activeForeground": "#b4b4b4",
+    "editor.selectionBackground": "#1e3a5f",
+    "editor.inactiveSelectionBackground": "#1a1a1a",
+    "editorCursor.foreground": "#ededed",
+    "editor.lineHighlightBackground": "#141414",
+    "editorIndentGuide.background1": "#262626",
+    "editorWidget.background": "#0f0f0f",
+    "editorWidget.border": "#2a2a2a",
+    "scrollbarSlider.background": "#2e2e2e",
+    "scrollbarSlider.hoverBackground": "#3a3a3a",
+    "scrollbarSlider.activeBackground": "#4a4a4a",
+    "scrollbar.shadow": "#0a0a0a",
+  },
+});
+
 loader.config({ monaco });

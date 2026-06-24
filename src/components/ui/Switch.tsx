@@ -17,12 +17,12 @@ export function Switch({ checked, onChange, label }: Props) {
       onClick={() => onChange(!checked)}
       className={
         "relative inline-flex h-[18px] w-[30px] shrink-0 items-center rounded-full transition-colors duration-200 outline-none focus-visible:shadow-[var(--focus-ring)] " +
-        (checked ? "bg-[#171717]" : "bg-[#e2e2e2]")
+        (checked ? "bg-[var(--color-primary)]" : "bg-[var(--color-track)]")
       }
     >
       <span
         className={
-          "inline-block h-[14px] w-[14px] rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-transform duration-200 " +
+          "inline-block h-[14px] w-[14px] rounded-full bg-[var(--color-panel)] shadow-[0_1px_2px_rgba(0,0,0,0.15)] transition-transform duration-200 " +
           (checked ? "translate-x-[14px]" : "translate-x-[2px]")
         }
       />
@@ -41,7 +41,7 @@ export function SwitchRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 py-1.5 text-body text-[#4d4d4d]">
+    <label className="flex cursor-pointer items-center justify-between gap-3 py-1.5 text-body text-[var(--color-fg-secondary)]">
       <span>{label}</span>
       <Switch checked={checked} onChange={onChange} label={label} />
     </label>

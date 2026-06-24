@@ -21,13 +21,13 @@ export function OutputActions({ onCopy, onCopyMarkdown }: Props) {
   };
 
   const btn =
-    "inline-flex items-center gap-1.5 rounded-md bg-white px-2.5 py-1 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]";
+    "inline-flex items-center gap-1.5 rounded-md bg-[var(--color-panel)] px-2.5 py-1 text-caption font-medium text-[var(--color-fg)] shadow-[var(--shadow-ring)] transition-all hover:bg-[var(--color-surface-2)] active:scale-[0.97]";
 
   return (
     <div className="flex items-center gap-1.5">
       <button className={btn} onClick={() => run("copy", onCopy)} title={t("toolbar.copy")}>
         {done === "copy" ? (
-          <Check size={13} className="text-[#15803d]" />
+          <Check size={13} className="text-[var(--color-success)]" />
         ) : (
           <Copy size={13} />
         )}
@@ -39,7 +39,7 @@ export function OutputActions({ onCopy, onCopyMarkdown }: Props) {
         title={t("toolbar.copyMd")}
       >
         {done === "md" ? (
-          <Check size={13} className="text-[#15803d]" />
+          <Check size={13} className="text-[var(--color-success)]" />
         ) : (
           <FileCode2 size={13} />
         )}

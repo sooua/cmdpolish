@@ -25,29 +25,29 @@ export function ConfirmDialog() {
 
   return (
     <div className="animate-fade fixed inset-0 z-50 flex items-center justify-center p-6">
-      <div className="absolute inset-0 bg-[#171717]/25" onClick={() => respond(false)} />
-      <div className="animate-modal relative w-[400px] max-w-full overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
+      <div className="absolute inset-0 bg-[var(--color-overlay)]" onClick={() => respond(false)} />
+      <div className="animate-modal relative w-[400px] max-w-full overflow-hidden rounded-2xl bg-[var(--color-panel)] shadow-[var(--shadow-pop)]">
         <div className="flex gap-3 px-5 pb-4 pt-5">
           {opts.danger && (
-            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fef2f2] text-[#e5484d]">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-danger-pale)] text-[var(--color-danger)]">
               <AlertTriangle size={15} />
             </span>
           )}
           <div className="flex flex-col gap-1">
             {opts.title && (
-              <h2 className="text-title font-semibold text-[#171717]">
+              <h2 className="text-title font-semibold text-[var(--color-fg)]">
                 {opts.title}
               </h2>
             )}
-            <p className="text-body leading-relaxed text-[#4d4d4d]">
+            <p className="text-body leading-relaxed text-[var(--color-fg-secondary)]">
               {opts.message}
             </p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-5 py-3 shadow-[inset_0_1px_0_0_#ebebeb]">
+        <div className="flex items-center justify-end gap-2 px-5 py-3 shadow-[inset_0_1px_0_0_var(--color-border)]">
           <button
             onClick={() => respond(false)}
-            className="rounded-md px-3 py-1.5 text-body font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
+            className="rounded-md px-3 py-1.5 text-body font-medium text-[var(--color-fg)] shadow-[var(--shadow-ring)] transition-all hover:bg-[var(--color-surface-2)] active:scale-[0.97]"
           >
             {cancelLabel}
           </button>
@@ -55,10 +55,10 @@ export function ConfirmDialog() {
             autoFocus
             onClick={() => respond(true)}
             className={
-              "rounded-md px-3 py-1.5 text-body font-medium text-white transition-all active:scale-[0.97] " +
+              "rounded-md px-3 py-1.5 text-body font-medium transition-all active:scale-[0.97] " +
               (opts.danger
-                ? "bg-[#e5484d] hover:bg-[#d13b40]"
-                : "bg-[#171717] hover:bg-black")
+                ? "bg-[var(--color-danger)] text-white hover:bg-[var(--color-danger-hover)]"
+                : "bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:bg-[var(--color-primary-hover)]")
             }
           >
             {confirmLabel}
