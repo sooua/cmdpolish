@@ -8,6 +8,10 @@ export default defineConfig({
   // Tauri expects a fixed port and does not fall back if unavailable.
   clearScreen: false,
   server: {
+    // Bind IPv4 explicitly: Tauri probes localhost→127.0.0.1, and on Windows a
+    // default "localhost" bind can land on IPv6 ::1 only, which Tauri then can't
+    // reach (the dev server appears to "never start").
+    host: "127.0.0.1",
     port: 1420,
     strictPort: true,
     watch: {

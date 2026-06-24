@@ -8,9 +8,43 @@
 
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
-use std::sync::OnceLock;
+use std::collections::HashMap;
+use std::sync::{Mutex, OnceLock};
 use std::time::Duration;
 use tauri::ipc::Channel;
+use tokio_util::sync::CancellationToken;
+
+/// Registry of in-flight requests keyed by a frontend-supplied id, so a later
+/// `ai_cancel(id)` can abort the actual HTTP request (not just unblock the UI).
+static CANCELS: OnceLock<Mutex<HashMap<String, CancellationToken>>> = OnceLock::new();
+
+fn cancels() -> &'static Mutex<HashMap<String, CancellationToken>> {
+    CANCELS.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+/// Register a cancellation token for `id` (no-op for an empty id) and return it.
+fn register(id: &str) -> CancellationToken {
+    let token = CancellationToken::new();
+    if !id.is_empty() {
+        cancels().lock().unwrap().insert(id.to_string(), token.clone());
+    }
+    token
+}
+
+fn unregister(id: &str) {
+    if !id.is_empty() {
+        cancels().lock().unwrap().remove(id);
+    }
+}
+
+/// Cancel an in-flight `ai_complete`/`ai_complete_stream` by its request id.
+/// Dropping the request future aborts the underlying connection.
+#[tauri::command]
+pub fn ai_cancel(id: String) {
+    if let Some(token) = cancels().lock().unwrap().remove(&id) {
+        token.cancel();
+    }
+}
 
 /// Shared HTTP client. Reusing one client keeps the TCP+TLS connection to the
 /// provider warm across requests (connection pooling / keep-alive), so only the
@@ -40,6 +74,9 @@ pub struct AiRequest {
     pub api_key: String,
     pub system: String,
     pub user: String,
+    /// Opaque id used to cancel this request via `ai_cancel`. Empty = no cancel.
+    #[serde(default)]
+    pub request_id: String,
     #[serde(default = "default_max_tokens")]
     pub max_tokens: u32,
     #[serde(default)]
@@ -81,6 +118,18 @@ fn trim_base(base: &str) -> String {
 
 #[tauri::command]
 pub async fn ai_complete(req: AiRequest) -> Result<AiResponse, String> {
+    let id = req.request_id.clone();
+    let token = register(&id);
+    // Dropping `work` when the token fires aborts the in-flight request.
+    let result = token
+        .run_until_cancelled(ai_complete_inner(req))
+        .await
+        .unwrap_or_else(|| Err("cancelled".to_string()));
+    unregister(&id);
+    result
+}
+
+async fn ai_complete_inner(req: AiRequest) -> Result<AiResponse, String> {
     let client = http();
     let base = trim_base(&req.base_url);
 
@@ -282,6 +331,22 @@ fn stream_truncated(kind: &str, json: &serde_json::Value) -> bool {
 
 #[tauri::command]
 pub async fn ai_complete_stream(
+    req: AiRequest,
+    on_event: Channel<StreamEvent>,
+) -> Result<(), String> {
+    let id = req.request_id.clone();
+    let token = register(&id);
+    // None => cancelled mid-stream; the request future is dropped (connection
+    // aborted). The frontend has already unblocked its UI on the same signal.
+    let result = token
+        .run_until_cancelled(ai_complete_stream_inner(req, on_event))
+        .await
+        .unwrap_or(Ok(()));
+    unregister(&id);
+    result
+}
+
+async fn ai_complete_stream_inner(
     req: AiRequest,
     on_event: Channel<StreamEvent>,
 ) -> Result<(), String> {

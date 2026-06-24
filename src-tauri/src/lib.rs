@@ -54,7 +54,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             ai::ai_complete,
             ai::ai_complete_stream,
-            ai::ai_prewarm
+            ai::ai_prewarm,
+            ai::ai_cancel
         ])
         .run(tauri::generate_context!())
         .expect("error while running CmdPolish");
