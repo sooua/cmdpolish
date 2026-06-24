@@ -20,6 +20,7 @@ export type HistoryEntry = {
 export type HistoryQuery = {
   search?: string;
   language?: Language | "all";
+  risk?: RiskLevel | "all";
   limit?: number;
 };
 

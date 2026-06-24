@@ -9,7 +9,7 @@ import {
   Download,
   ArrowUpCircle,
 } from "lucide-react";
-import { useAppStore } from "../store/useAppStore";
+import { useAppStore, type ThemePref } from "../store/useAppStore";
 import { aiComplete, isLocalEndpoint } from "../engine/ai";
 import { appVersion } from "../lib/updater";
 import { useT } from "../i18n/useT";
@@ -38,11 +38,12 @@ const ACTION_LABEL: Record<ShortcutAction, MsgKey> = {
   history: "history.title",
 };
 
-const MODES: { value: RedactMode; key: "redactMode.preserve" | "redactMode.placeholder" }[] =
-  [
-    { value: "preserve-ends", key: "redactMode.preserve" },
-    { value: "placeholder", key: "redactMode.placeholder" },
-  ];
+const MODES: { value: RedactMode; key: MsgKey }[] = [
+  { value: "preserve-ends", key: "redactMode.preserve" },
+  { value: "placeholder", key: "redactMode.placeholder" },
+  { value: "hidden", key: "redactMode.hidden" },
+  { value: "delivery", key: "redactMode.delivery" },
+];
 
 export function SettingsDialog() {
   const {
@@ -67,6 +68,7 @@ export function SettingsDialog() {
   );
   const [testMsg, setTestMsg] = useState("");
   const [version, setVersion] = useState("");
+  const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
     if (settingsOpen) appVersion().then(setVersion);
@@ -106,23 +108,23 @@ export function SettingsDialog() {
   };
 
   const field =
-    "w-full rounded-md bg-white px-2.5 py-1.5 text-body text-[#171717] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)]";
-  const label = "text-caption text-[#666666]";
+    "w-full rounded-md bg-[var(--color-panel)] px-2.5 py-1.5 text-body text-[var(--color-fg)] shadow-[var(--shadow-ring)] outline-none transition-shadow focus:shadow-[0_0_0_1px_var(--color-focus)]";
+  const label = "text-caption text-[var(--color-fg-muted)]";
 
   return (
     <div className="animate-fade fixed inset-0 z-40 flex items-center justify-center p-6">
       <div
-        className="absolute inset-0 bg-[#171717]/20"
+        className="absolute inset-0 bg-[var(--color-overlay)]"
         onClick={() => setSettingsOpen(false)}
       />
-      <div className="animate-modal relative flex max-h-[85vh] w-[460px] max-w-full flex-col overflow-hidden rounded-2xl bg-white shadow-[var(--shadow-pop)]">
+      <div className="animate-modal relative flex max-h-[85vh] w-[460px] max-w-full flex-col overflow-hidden rounded-2xl bg-[var(--color-panel)] shadow-[var(--shadow-pop)]">
         <header className="flex items-center justify-between px-5 py-3.5 shadow-[var(--shadow-border)]">
-          <span className="text-title font-semibold text-[#171717]">
+          <span className="text-title font-semibold text-[var(--color-fg)]">
             {t("settings.title")}
           </span>
           <button
             onClick={() => setSettingsOpen(false)}
-            className="rounded-md p-1.5 text-[#666666] transition-colors hover:bg-[#fafafa] hover:text-[#171717]"
+            className="rounded-md p-1.5 text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-fg)]"
           >
             <X size={16} />
           </button>
@@ -143,6 +145,18 @@ export function SettingsDialog() {
                     {l.label}
                   </option>
                 ))}
+              </Select>
+            </Row>
+            <Row label={t("settings.theme")}>
+              <Select
+                value={settings.theme}
+                onChange={(e) =>
+                  updateSettings({ theme: e.target.value as ThemePref })
+                }
+              >
+                <option value="system">{t("theme.system")}</option>
+                <option value="light">{t("theme.light")}</option>
+                <option value="dark">{t("theme.dark")}</option>
               </Select>
             </Row>
             <Row label={t("settings.fontSize")}>
@@ -173,7 +187,7 @@ export function SettingsDialog() {
               checked={settings.aiEnabled}
               onChange={(v) => updateSettings({ aiEnabled: v })}
             />
-            <p className="-mt-1 text-micro text-[#6e6e6e]">
+            <p className="-mt-1 text-micro text-[var(--color-muted-2)]">
               {t("aiMenu.useAiHint")}
             </p>
 
@@ -207,6 +221,12 @@ export function SettingsDialog() {
                       updateProvider(active.id, { baseUrl: e.target.value })
                     }
                   />
+                  {active.baseUrl.trim() &&
+                    !/^https?:\/\//i.test(active.baseUrl.trim()) && (
+                      <span className="text-micro text-[var(--color-warn)]">
+                        {t("aiMenu.badUrl")}
+                      </span>
+                    )}
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <span className={label}>Model</span>
@@ -223,27 +243,38 @@ export function SettingsDialog() {
                   <span className={label}>
                     API Key{" "}
                     {local && (
-                      <span className="text-[#a3a3a3]">
+                      <span className="text-[var(--color-faint)]">
                         {t("aiMenu.localNoKey")}
                       </span>
                     )}
                   </span>
-                  <input
-                    className={field}
-                    type="password"
-                    value={active.apiKey}
-                    placeholder={local ? t("aiMenu.apiKeyLocal") : "sk-…"}
-                    onChange={(e) =>
-                      updateProvider(active.id, { apiKey: e.target.value })
-                    }
-                  />
+                  <div className="relative">
+                    <input
+                      className={`${field} pr-14`}
+                      type={showKey ? "text" : "password"}
+                      value={active.apiKey}
+                      placeholder={local ? t("aiMenu.apiKeyLocal") : "sk-…"}
+                      onChange={(e) =>
+                        updateProvider(active.id, { apiKey: e.target.value })
+                      }
+                    />
+                    {active.apiKey && (
+                      <button
+                        type="button"
+                        onClick={() => setShowKey((v) => !v)}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-micro text-[var(--color-fg-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-fg)]"
+                      >
+                        {showKey ? t("aiMenu.hideKey") : t("aiMenu.showKey")}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={test}
                     disabled={testState === "testing"}
-                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-caption font-medium text-[var(--color-fg)] shadow-[var(--shadow-ring)] transition-all hover:bg-[var(--color-surface-2)] active:scale-[0.97] disabled:opacity-50"
                   >
                     {testState === "testing" ? (
                       <Loader2 size={13} className="animate-spin" />
@@ -253,13 +284,13 @@ export function SettingsDialog() {
                     {t("aiMenu.test")}
                   </button>
                   {testState === "ok" && (
-                    <span className="flex items-center gap-1 text-caption text-[#15803d]">
+                    <span className="flex items-center gap-1 text-caption text-[var(--color-success)]">
                       <CheckCircle2 size={13} /> {testMsg}
                     </span>
                   )}
                   {testState === "fail" && (
                     <span
-                      className="flex items-center gap-1 truncate text-caption text-[#e5484d]"
+                      className="flex items-center gap-1 truncate text-caption text-[var(--color-danger)]"
                       title={testMsg}
                     >
                       <XCircle size={13} /> {t("aiMenu.fail")}
@@ -267,7 +298,7 @@ export function SettingsDialog() {
                   )}
                 </div>
                 {!local && (
-                  <p className="text-micro text-[#9a3412]">
+                  <p className="text-micro text-[var(--color-warn)]">
                     {t("aiMenu.cloudWarn")}
                   </p>
                 )}
@@ -303,6 +334,11 @@ export function SettingsDialog() {
               checked={settings.redactIp}
               onChange={(v) => updateSettings({ redactIp: v })}
             />
+            <SwitchRow
+              label={t("settings.redactDomain")}
+              checked={settings.redactDomain}
+              onChange={(v) => updateSettings({ redactDomain: v })}
+            />
           </Section>
 
           {/* Shortcuts */}
@@ -323,14 +359,14 @@ export function SettingsDialog() {
               ))}
             </div>
             <div className="flex items-center justify-between pt-1">
-              <span className="text-micro text-[#6e6e6e]">
+              <span className="text-micro text-[var(--color-muted-2)]">
                 {t("shortcut.hint")}
               </span>
               <button
                 onClick={() =>
                   updateSettings({ shortcuts: { ...DEFAULT_SHORTCUTS } })
                 }
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97]"
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium text-[var(--color-fg)] shadow-[var(--shadow-ring)] transition-all hover:bg-[var(--color-surface-2)] active:scale-[0.97]"
               >
                 <RotateCcw size={13} />
                 {t("shortcut.reset")}
@@ -341,13 +377,13 @@ export function SettingsDialog() {
           {/* Updates */}
           <Section title={t("updates.title")}>
             <div className="flex items-center justify-between gap-3">
-              <span className="text-body text-[#4d4d4d]">
+              <span className="text-body text-[var(--color-fg-secondary)]">
                 {version ? t("updates.version", { v: version }) : "—"}
               </span>
               <button
                 onClick={() => checkForUpdate(false)}
                 disabled={updateChecking || updateInstalling}
-                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium text-[#171717] shadow-[var(--shadow-ring)] transition-all hover:bg-[#fafafa] active:scale-[0.97] disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-caption font-medium text-[var(--color-fg)] shadow-[var(--shadow-ring)] transition-all hover:bg-[var(--color-surface-2)] active:scale-[0.97] disabled:opacity-50"
               >
                 {updateChecking ? (
                   <Loader2 size={13} className="animate-spin" />
@@ -359,20 +395,20 @@ export function SettingsDialog() {
             </div>
 
             {updateInfo ? (
-              <div className="flex flex-col gap-2 rounded-lg bg-[#ebf5ff] px-3 py-2.5 shadow-[inset_0_0_0_1px_#bfdbfe]">
-                <span className="flex items-center gap-1.5 text-body font-medium text-[#0068d6]">
+              <div className="flex flex-col gap-2 rounded-lg bg-[var(--color-badge-bg)] px-3 py-2.5 shadow-[inset_0_0_0_1px_var(--color-badge-border)]">
+                <span className="flex items-center gap-1.5 text-body font-medium text-[var(--color-badge-text)]">
                   <ArrowUpCircle size={15} />
                   {t("updates.available", { v: updateInfo.version })}
                 </span>
                 {updateInfo.notes && (
-                  <p className="max-h-20 overflow-auto whitespace-pre-wrap text-caption leading-relaxed text-[#4d4d4d]">
+                  <p className="max-h-20 overflow-auto whitespace-pre-wrap text-caption leading-relaxed text-[var(--color-fg-secondary)]">
                     {updateInfo.notes}
                   </p>
                 )}
                 <button
                   onClick={() => runUpdateInstall()}
                   disabled={updateInstalling}
-                  className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[#171717] px-3 py-1.5 text-caption font-medium text-white transition-all hover:bg-black active:scale-[0.97] disabled:opacity-60"
+                  className="inline-flex w-fit items-center gap-1.5 rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-caption font-medium text-[var(--color-on-primary)] transition-all hover:bg-[var(--color-primary-hover)] active:scale-[0.97] disabled:opacity-60"
                 >
                   {updateInstalling ? (
                     <Loader2 size={13} className="animate-spin" />
@@ -388,18 +424,18 @@ export function SettingsDialog() {
                       })
                     : t("updates.install")}
                 </button>
-                <span className="text-micro text-[#6e6e6e]">
+                <span className="text-micro text-[var(--color-muted-2)]">
                   {t("updates.restartNote")}
                 </span>
               </div>
             ) : updateChecked && !updateError ? (
-              <span className="flex items-center gap-1.5 text-caption text-[#15803d]">
+              <span className="flex items-center gap-1.5 text-caption text-[var(--color-success)]">
                 <CheckCircle2 size={13} /> {t("updates.upToDate")}
               </span>
             ) : null}
 
             {updateError && (
-              <span className="text-caption text-[#e5484d]">
+              <span className="text-caption text-[var(--color-danger)]">
                 {t("updates.failed", { msg: updateError })}
               </span>
             )}
@@ -444,15 +480,15 @@ function ShortcutRow({
   }, [recording, onChange]);
 
   return (
-    <div className="flex items-center justify-between gap-3 py-1.5 text-body text-[#4d4d4d]">
+    <div className="flex items-center justify-between gap-3 py-1.5 text-body text-[var(--color-fg-secondary)]">
       <span>{label}</span>
       <button
         onClick={() => setRecording((r) => !r)}
         className={
           "min-w-[88px] rounded-md px-2.5 py-1 text-center font-mono text-caption transition-all active:scale-[0.97] " +
           (recording
-            ? "bg-[#ebf5ff] text-[#0068d6] shadow-[inset_0_0_0_1px_#bfdbfe]"
-            : "text-[#171717] shadow-[var(--shadow-ring)] hover:bg-[#fafafa]")
+            ? "bg-[var(--color-badge-bg)] text-[var(--color-badge-text)] shadow-[inset_0_0_0_1px_var(--color-badge-border)]"
+            : "text-[var(--color-fg)] shadow-[var(--shadow-ring)] hover:bg-[var(--color-surface-2)]")
         }
       >
         {recording ? recordingLabel : formatCombo(combo)}
@@ -470,7 +506,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-2.5">
-      <h3 className="font-mono text-micro uppercase tracking-tight text-[#6e6e6e]">
+      <h3 className="font-mono text-micro uppercase tracking-tight text-[var(--color-muted-2)]">
         {title}
       </h3>
       {children}
@@ -480,7 +516,7 @@ function Section({
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 text-body text-[#4d4d4d]">
+    <div className="flex items-center justify-between gap-3 text-body text-[var(--color-fg-secondary)]">
       <span>{label}</span>
       {children}
     </div>
@@ -497,7 +533,7 @@ function SwitchRow({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-3 text-body text-[#4d4d4d]">
+    <label className="flex cursor-pointer items-center justify-between gap-3 text-body text-[var(--color-fg-secondary)]">
       <span>{label}</span>
       <Switch checked={checked} onChange={onChange} label={label} />
     </label>

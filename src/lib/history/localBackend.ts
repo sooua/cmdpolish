@@ -31,6 +31,9 @@ export class LocalHistoryBackend implements HistoryBackend {
     if (query.language && query.language !== "all") {
       entries = entries.filter((e) => e.language === query.language);
     }
+    if (query.risk && query.risk !== "all") {
+      entries = entries.filter((e) => e.riskLevel === query.risk);
+    }
     if (query.search && query.search.trim()) {
       const q = query.search.trim().toLowerCase();
       entries = entries.filter(

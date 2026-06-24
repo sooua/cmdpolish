@@ -19,12 +19,15 @@ import {
   aiFormatStream,
   runAiTask,
   aiPrewarm,
+  AiError,
   PROVIDER_PRESETS,
   DEFAULT_PROVIDER_KEYS,
   isLocalEndpoint,
   type AiProvider,
+  type AiErrorKind,
   type AiTask,
 } from "../engine/ai";
+import type { MsgKey } from "../i18n";
 import { loadSettings, saveSettings } from "../lib/persist";
 import { tFor, detectLocale, type Locale } from "../i18n";
 import { ask } from "../components/ui/confirm";
@@ -34,8 +37,11 @@ import {
 } from "../lib/shortcuts";
 import { checkUpdate, installUpdate, type UpdateInfo } from "../lib/updater";
 
+export type ThemePref = "light" | "dark" | "system";
+
 export type Settings = {
   locale: Locale;
+  theme: ThemePref;
   fontSize: number;
   shortcuts: Record<ShortcutAction, string>;
   redactMode: RedactMode;
@@ -61,13 +67,23 @@ type AppState = {
   manualLanguage: Language | "auto";
   warnings: string[];
   redactFindings: RedactFinding[];
+  /**
+   * The un-redacted text a redaction was last applied to. Kept so changing a
+   * redaction toggle can re-scan from the original instead of double-masking
+   * already-redacted output. Null when the current output isn't a redaction.
+   */
+  preRedactSource: string | null;
   guard: GuardResult;
   settings: Settings;
+  /** Concrete theme in effect (resolves "system"); drives the Monaco theme. */
+  resolvedTheme: "light" | "dark";
 
   // AI runtime state
   aiBusy: boolean;
   aiResult: string; // prose output from AI tasks
   aiError: string;
+  /** Transient, non-error status surfaced in the toolbar (e.g. save failures). */
+  notice: string;
   settingsOpen: boolean; // controls the AI config popover
 
   // Auto-update
@@ -87,12 +103,17 @@ type AppState = {
   setInput: (text: string) => void;
   setManualLanguage: (lang: Language | "auto") => void;
   format: () => Promise<void>;
+  /** Abort an in-flight AI request (Stop button). */
+  cancelAi: () => void;
+  setNotice: (msg: string) => void;
   redactNow: () => void;
   copyAsMarkdownText: () => string;
   clearInput: () => void;
   clearOutput: () => void;
   useOutputAsInput: () => void;
   updateSettings: (patch: Partial<Settings>) => void;
+  /** Recompute and apply the active theme (after a pref or OS change). */
+  applyResolvedTheme: () => void;
 
   // AI actions
   activeProvider: () => AiProvider | undefined;
@@ -130,6 +151,7 @@ function deriveTitle(text: string): string {
 
 const DEFAULT_SETTINGS: Settings = {
   locale: detectLocale(),
+  theme: "system",
   fontSize: 13,
   shortcuts: { ...DEFAULT_SHORTCUTS },
   redactMode: "preserve-ends",
@@ -183,6 +205,68 @@ function resolveLanguage(state: {
     : state.manualLanguage;
 }
 
+/** Map a categorized AI error to a localized, actionable message key. */
+const AI_ERROR_KEY: Record<AiErrorKind, MsgKey> = {
+  aborted: "ai.err.aborted",
+  timeout: "ai.err.timeout",
+  auth: "ai.err.auth",
+  "rate-limit": "ai.err.rateLimit",
+  network: "ai.err.network",
+  provider: "ai.err.provider",
+  unknown: "ai.callFailed",
+};
+
+function aiErrorMessage(e: unknown, locale: Locale): string {
+  const t = tFor(locale);
+  if (e instanceof AiError) {
+    const msg = t(AI_ERROR_KEY[e.kind], { msg: e.message });
+    return e.kind === "unknown" || e.kind === "provider"
+      ? msg
+      : `${msg}${e.status ? ` (${e.status})` : ""}`;
+  }
+  return t("ai.callFailed", { msg: (e as Error)?.message ?? String(e) });
+}
+
+/** Debounce timer for expensive per-keystroke detection + guard review. */
+let detectTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** Resolve a theme preference to a concrete light/dark value. */
+function resolveTheme(pref: ThemePref): "light" | "dark" {
+  if (pref === "system") {
+    return typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+  return pref;
+}
+
+/** Apply a resolved theme to <html data-theme> and return the resolved value. */
+function applyTheme(pref: ThemePref): "light" | "dark" {
+  const resolved = resolveTheme(pref);
+  if (typeof document !== "undefined") {
+    document.documentElement.dataset.theme = resolved;
+  }
+  return resolved;
+}
+
+// React to OS theme changes while the user is on "system".
+if (typeof window !== "undefined" && window.matchMedia) {
+  window
+    .matchMedia("(prefers-color-scheme: dark)")
+    .addEventListener("change", () => {
+      const st = useAppStore.getState();
+      if (st.settings.theme === "system") {
+        st.applyResolvedTheme();
+      }
+    });
+}
+
+/** Controller for the current AI request, so a new one (or Stop) can abort it. */
+let aiAbort: AbortController | null = null;
+
+const INITIAL_SETTINGS = initialSettings();
+
 export const useAppStore = create<AppState>((set, get) => ({
   input: "",
   output: "",
@@ -193,12 +277,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   manualLanguage: "auto",
   warnings: [],
   redactFindings: [],
+  preRedactSource: null,
   guard: { level: "none", findings: [] },
-  settings: initialSettings(),
+  settings: INITIAL_SETTINGS,
+  resolvedTheme: applyTheme(INITIAL_SETTINGS.theme),
 
   aiBusy: false,
   aiResult: "",
   aiError: "",
+  notice: "",
   settingsOpen: false,
 
   updateInfo: null,
@@ -211,25 +298,30 @@ export const useAppStore = create<AppState>((set, get) => ({
   history: [],
   historyOpen: false,
   historyKind: null,
-  historyQuery: { language: "all", search: "" },
+  historyQuery: { language: "all", risk: "all", search: "" },
 
   setInput: (text) => {
-    const det = get().settings.autoDetect
-      ? detectLanguage(text)
-      : { language: get().autoLanguage, confidence: 0, reason: [] };
-    set((s) => {
-      const autoLanguage = det.language;
-      const language =
-        s.manualLanguage === "auto" ? autoLanguage : s.manualLanguage;
-      return {
-        input: text,
-        autoLanguage,
+    // Update the text immediately so typing stays responsive; defer the
+    // expensive detection + guard review to a short idle debounce.
+    set({ input: text });
+    if (detectTimer) clearTimeout(detectTimer);
+    const run = () => {
+      const s = get();
+      const det = s.settings.autoDetect
+        ? detectLanguage(text)
+        : { language: s.autoLanguage, confidence: 0, reason: [] };
+      set((st) => ({
+        autoLanguage: det.language,
         confidence: det.confidence,
         detectReasons: det.reason,
-        language,
+        language:
+          st.manualLanguage === "auto" ? det.language : st.manualLanguage,
         guard: review(text),
-      };
-    });
+      }));
+    };
+    // Tiny inputs feel better updating synchronously; large ones get debounced.
+    if (text.length < 2000) run();
+    else detectTimer = setTimeout(run, 150);
   },
 
   setManualLanguage: (lang) =>
@@ -263,12 +355,23 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!ok) return;
     }
 
-    set({ aiBusy: true, aiError: "", output: "" });
+    // Supersede any in-flight request (rapid re-clicks) and start a fresh one.
+    aiAbort?.abort();
+    const ctrl = new AbortController();
+    aiAbort = ctrl;
+
+    set({ aiBusy: true, aiError: "", notice: "", output: "", preRedactSource: null });
     const startedAt = performance.now();
     try {
       // Stream tokens into the output pane as they arrive for instant feedback.
-      const res = await aiFormatStream(input, language, provider, (partial) =>
-        set({ output: partial })
+      const res = await aiFormatStream(
+        input,
+        language,
+        provider,
+        (partial) => {
+          if (!ctrl.signal.aborted) set({ output: partial });
+        },
+        { signal: ctrl.signal }
       );
       const durationMs = Math.round(performance.now() - startedAt);
       const warnings = res.truncated
@@ -283,29 +386,50 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (res.text.trim()) {
         get()
           .saveSnippet(durationMs)
-          .catch((e) => console.error("History save failed:", e));
+          .catch((e) => {
+            console.error("History save failed:", e);
+            set({ notice: tFor(get().settings.locale)("history.saveFailed") });
+          });
       }
     } catch (e) {
-      set({
-        aiError: tFor(get().settings.locale)("ai.callFailed", {
-          msg: (e as Error).message ?? String(e),
-        }),
-      });
+      // A cancelled request is intentional — keep whatever streamed in, no error.
+      if (!(e instanceof AiError && e.kind === "aborted")) {
+        set({ aiError: aiErrorMessage(e, get().settings.locale) });
+      }
     } finally {
-      set({ aiBusy: false });
+      // Only the still-active request clears busy; a superseded one must not.
+      if (aiAbort === ctrl) {
+        aiAbort = null;
+        set({ aiBusy: false });
+      }
     }
   },
 
+  cancelAi: () => {
+    aiAbort?.abort();
+    aiAbort = null;
+    set({ aiBusy: false });
+  },
+
+  setNotice: (msg) => set({ notice: msg }),
+
   redactNow: () => {
-    const { input, output, settings } = get();
-    const source = output || input;
+    const { input, output, settings, preRedactSource } = get();
+    // Re-scan from the original text if we already redacted once, so switching
+    // modes/toggles doesn't mask the placeholders from a previous pass.
+    const source = preRedactSource ?? (output || input);
+    if (!source) return;
     const result = redact(source, {
       mode: settings.redactMode,
       redactEmail: settings.redactEmail,
       redactIp: settings.redactIp,
       redactDomain: settings.redactDomain,
     });
-    set({ output: result.text, redactFindings: result.findings });
+    set({
+      output: result.text,
+      redactFindings: result.findings,
+      preRedactSource: source,
+    });
   },
 
   copyAsMarkdownText: () => {
@@ -321,9 +445,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       detectReasons: [],
       guard: { level: "none", findings: [] },
       redactFindings: [],
+      preRedactSource: null,
     }),
 
-  clearOutput: () => set({ output: "", warnings: [], redactFindings: [] }),
+  clearOutput: () =>
+    set({ output: "", warnings: [], redactFindings: [], preRedactSource: null }),
 
   useOutputAsInput: () => {
     const { output } = get();
@@ -334,8 +460,32 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => {
       const settings = { ...s.settings, ...patch };
       saveSettings(settings);
-      return { settings };
+      const next: Partial<AppState> = { settings };
+      if (patch.theme && patch.theme !== s.settings.theme) {
+        next.resolvedTheme = applyTheme(patch.theme);
+      }
+      // If a redaction option changed while a redaction is applied, re-scan the
+      // original text so the output reflects the new mode immediately.
+      const touchesRedaction =
+        "redactMode" in patch ||
+        "redactEmail" in patch ||
+        "redactIp" in patch ||
+        "redactDomain" in patch;
+      if (touchesRedaction && s.preRedactSource != null) {
+        const r = redact(s.preRedactSource, {
+          mode: settings.redactMode,
+          redactEmail: settings.redactEmail,
+          redactIp: settings.redactIp,
+          redactDomain: settings.redactDomain,
+        });
+        next.output = r.text;
+        next.redactFindings = r.findings;
+      }
+      return next;
     }),
+
+  applyResolvedTheme: () =>
+    set((s) => ({ resolvedTheme: applyTheme(s.settings.theme) })),
 
   activeProvider: () => {
     const { settings } = get();
@@ -348,7 +498,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     const p = settings.aiProviders.find(
       (x) => x.id === settings.activeProviderId
     );
-    return !!p && !!p.baseUrl && !!p.model;
+    if (!p || !p.baseUrl || !p.model) return false;
+    // Cloud providers need a key; local ones (Ollama/LM Studio) don't.
+    const local = p.local || isLocalEndpoint(p.baseUrl);
+    return local || !!p.apiKey.trim();
   },
 
   setSettingsOpen: (open) => set({ settingsOpen: open }),
@@ -389,18 +542,29 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (!ok) return;
     }
 
-    set({ aiBusy: true, aiError: "" });
+    aiAbort?.abort();
+    const ctrl = new AbortController();
+    aiAbort = ctrl;
+
+    set({ aiBusy: true, aiError: "", notice: "" });
     try {
-      const result = await runAiTask(task, source, language, provider);
+      const result = await runAiTask(task, source, language, provider, {
+        signal: ctrl.signal,
+      });
       if (task.output === "code") {
-        set({ output: result });
+        set({ output: result, preRedactSource: null });
       } else {
         set({ aiResult: result });
       }
     } catch (e) {
-      set({ aiError: (e as Error).message ?? String(e) });
+      if (!(e instanceof AiError && e.kind === "aborted")) {
+        set({ aiError: aiErrorMessage(e, get().settings.locale) });
+      }
     } finally {
-      set({ aiBusy: false });
+      if (aiAbort === ctrl) {
+        aiAbort = null;
+        set({ aiBusy: false });
+      }
     }
   },
 
@@ -504,7 +668,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   restoreSnippet: (entry) => {
     get().setInput(entry.inputText);
-    set({ output: entry.outputText, historyOpen: false });
+    set({ output: entry.outputText, historyOpen: false, preRedactSource: null });
   },
 
   setHistoryOpen: (open) => {

@@ -58,6 +58,10 @@ export class SqlHistoryBackend implements HistoryBackend {
       where.push(`language = $${p++}`);
       params.push(query.language);
     }
+    if (query.risk && query.risk !== "all") {
+      where.push(`risk_level = $${p++}`);
+      params.push(query.risk);
+    }
     if (query.search && query.search.trim()) {
       const like = `%${query.search.trim()}%`;
       where.push(`(title LIKE $${p} OR input_text LIKE $${p} OR output_text LIKE $${p})`);

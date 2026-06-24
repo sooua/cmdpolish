@@ -47,8 +47,13 @@ export default function App() {
   }, []);
 
   const handleCopy = useCallback(async () => {
-    const ok = await copyToClipboard(s.output || s.input);
-    flash(ok ? t("toolbar.copied") : t("toolbar.copyFailed"));
+    const text = s.output || s.input;
+    const ok = await copyToClipboard(text);
+    flash(
+      ok
+        ? t("toolbar.copiedSize", { n: humanSize(text.length) })
+        : t("toolbar.copyFailed")
+    );
     return ok;
   }, [s.output, s.input, flash, t]);
 
@@ -85,7 +90,29 @@ export default function App() {
       history: () => s.setHistoryOpen(true),
     };
     const onKey = (e: KeyboardEvent) => {
+      // Esc stops an in-flight AI request.
+      if (e.key === "Escape" && s.aiBusy) {
+        e.preventDefault();
+        s.cancelAi();
+        return;
+      }
       if (!(e.ctrlKey || e.metaKey)) return;
+      // Ctrl/⌘+1/2/3 switch inspector tabs.
+      if (e.key === "1") {
+        e.preventDefault();
+        setTab("security");
+        return;
+      }
+      if (e.key === "2") {
+        e.preventDefault();
+        setTab("warnings");
+        return;
+      }
+      if (e.key === "3") {
+        e.preventDefault();
+        setTab("ai");
+        return;
+      }
       const combo = comboFromEvent(e);
       if (!combo) return;
       for (const action of SHORTCUT_ACTIONS) {
@@ -106,18 +133,18 @@ export default function App() {
   }, [s.guard.findings.length, s.redactFindings.length]);
 
   const iconBtn =
-    "inline-flex items-center justify-center rounded-md p-1.5 text-[#666666] transition-all hover:bg-[#fafafa] hover:text-[#171717] active:scale-[0.95]";
+    "inline-flex items-center justify-center rounded-md p-1.5 text-[var(--color-fg-muted)] transition-all hover:bg-[var(--color-surface-2)] hover:text-[var(--color-fg)] active:scale-[0.95]";
 
   return (
-    <div className="flex h-full flex-col bg-white text-[#171717]">
+    <div className="flex h-full flex-col bg-[var(--color-panel)] text-[var(--color-fg)]">
       {/* Integrated title bar (frameless window) */}
       <header
         data-tauri-drag-region
         className="flex h-10 shrink-0 items-center pl-3 shadow-[var(--shadow-border)]"
       >
         <div data-tauri-drag-region className="flex items-center gap-2">
-          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#171717]">
-            <Terminal size={13} className="text-white" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary)]">
+            <Terminal size={13} className="text-[var(--color-on-primary)]" />
           </span>
           <span className="text-body font-semibold tracking-[-0.02em]">
             CmdPolish
@@ -131,7 +158,7 @@ export default function App() {
             <button
               onClick={() => s.setSettingsOpen(true)}
               title={t("updates.available", { v: s.updateInfo.version })}
-              className="mr-1 inline-flex items-center gap-1 rounded-full bg-[#ebf5ff] px-2 py-0.5 text-caption font-medium text-[#0068d6] shadow-[inset_0_0_0_1px_#bfdbfe] transition-all hover:bg-[#dceefe] active:scale-[0.97]"
+              className="mr-1 inline-flex items-center gap-1 rounded-full bg-[var(--color-badge-bg)] px-2 py-0.5 text-caption font-medium text-[var(--color-badge-text)] shadow-[inset_0_0_0_1px_var(--color-badge-border)] transition-all hover:bg-[var(--color-badge-bg-hover)] active:scale-[0.97]"
             >
               <ArrowUpCircle size={13} />
               {t("updates.badge")}
@@ -157,12 +184,12 @@ export default function App() {
 
       {/* Onboarding banner — AI is required to format. */}
       {!s.aiReady() && (
-        <div className="flex items-center gap-3 bg-[#fafafa] px-5 py-2.5 text-body text-[#4d4d4d] shadow-[var(--shadow-border)]">
-          <Sparkles size={15} className="shrink-0 text-[#0a72ef]" />
+        <div className="flex items-center gap-3 bg-[var(--color-surface-2)] px-5 py-2.5 text-body text-[var(--color-fg-secondary)] shadow-[var(--shadow-border)]">
+          <Sparkles size={15} className="shrink-0 text-[var(--color-accent)]" />
           <span className="flex-1">{t("banner.needAi")}</span>
           <button
             onClick={() => s.setSettingsOpen(true)}
-            className="shrink-0 rounded-md bg-[#171717] px-3 py-1 text-body font-medium text-white transition-all hover:bg-black active:scale-[0.97]"
+            className="shrink-0 rounded-md bg-[var(--color-primary)] px-3 py-1 text-body font-medium text-[var(--color-on-primary)] transition-all hover:bg-[var(--color-primary-hover)] active:scale-[0.97]"
           >
             {t("banner.configAi")}
           </button>
@@ -171,7 +198,7 @@ export default function App() {
 
       {/* Editors — side by side on wide windows, stacked when narrow. */}
       <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-2 md:grid-cols-2 md:grid-rows-1">
-        <section className="flex min-h-0 flex-col shadow-[inset_0_-1px_0_0_#ebebeb] md:shadow-[inset_-1px_0_0_0_#ebebeb]">
+        <section className="flex min-h-0 flex-col shadow-[inset_0_-1px_0_0_var(--color-border)] md:shadow-[inset_-1px_0_0_0_var(--color-border)]">
           <PaneHeader title={t("pane.input")} hint={t("pane.inputHint")} />
           <div className="min-h-0 flex-1">
             <EditorPane
@@ -196,8 +223,8 @@ export default function App() {
             )}
             {!s.aiBusy && !s.output && (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <span className="flex items-center gap-2 text-body text-[#6e6e6e]">
-                  <Sparkles size={15} className="text-[#a3a3a3]" />
+                <span className="flex items-center gap-2 text-body text-[var(--color-muted-2)]">
+                  <Sparkles size={15} className="text-[var(--color-faint)]" />
                   {t("pane.outputEmpty")}
                 </span>
               </div>
@@ -207,13 +234,14 @@ export default function App() {
       </div>
 
       {/* Inspector tabs */}
-      <div className="bg-white shadow-[var(--shadow-border)]">
+      <div className="bg-[var(--color-panel)] shadow-[var(--shadow-border)]">
         <div className="flex items-center px-3">
           <div className="flex items-center gap-1">
             <TabButton
               active={tab === "security"}
               badge={securityBadge}
               onClick={() => setTab("security")}
+              title={`${t("tab.security")} · ${t("tab.hint.security")}`}
             >
               {t("tab.security")}
             </TabButton>
@@ -221,10 +249,15 @@ export default function App() {
               active={tab === "warnings"}
               badge={s.warnings.length || undefined}
               onClick={() => setTab("warnings")}
+              title={`${t("tab.warnings")} · ${t("tab.hint.warnings")}`}
             >
               {t("tab.warnings")}
             </TabButton>
-            <TabButton active={tab === "ai"} onClick={() => setTab("ai")}>
+            <TabButton
+              active={tab === "ai"}
+              onClick={() => setTab("ai")}
+              title={`${t("tab.ai")} · ${t("tab.hint.ai")}`}
+            >
               {t("tab.ai")}
             </TabButton>
           </div>
@@ -239,7 +272,7 @@ export default function App() {
         </div>
         <div
           key={tab}
-          className="animate-fade max-h-44 overflow-auto border-t border-[#ebebeb]"
+          className="animate-fade max-h-44 overflow-auto border-t border-[var(--color-border)]"
         >
           {tab === "security" && (
             <SecurityPanel guard={s.guard} findings={s.redactFindings} />
@@ -258,12 +291,13 @@ export default function App() {
 
       <Toolbar
         onFormat={handleFormat}
+        onStop={s.cancelAi}
         onRedact={handleRedact}
         onClear={handleClear}
         busy={s.aiBusy}
         aiMode={s.settings.aiEnabled}
         aiActions={<AiActionsMenu />}
-        status={status}
+        status={status || s.notice}
       />
 
       <HistoryDrawer />
@@ -271,6 +305,13 @@ export default function App() {
       <ConfirmDialog />
     </div>
   );
+}
+
+/** Human-readable byte size for copy feedback (chars ≈ bytes for ASCII). */
+function humanSize(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function GeneratingOverlay({ label }: { label: string }) {
@@ -281,11 +322,11 @@ function GeneratingOverlay({ label }: { label: string }) {
     return () => window.clearInterval(t);
   }, []);
   return (
-    <div className="animate-fade pointer-events-none absolute inset-0 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-      <div className="flex items-center gap-2 rounded-lg bg-white px-3.5 py-2 text-body text-[#4d4d4d] shadow-[var(--shadow-pop)]">
-        <Sparkles size={15} className="animate-pulse text-[#0a72ef]" />
+    <div className="animate-fade pointer-events-none absolute inset-0 flex items-center justify-center bg-[var(--color-overlay-panel)] backdrop-blur-[1px]">
+      <div className="flex items-center gap-2 rounded-lg bg-[var(--color-panel)] px-3.5 py-2 text-body text-[var(--color-fg-secondary)] shadow-[var(--shadow-pop)]">
+        <Sparkles size={15} className="animate-pulse text-[var(--color-accent)]" />
         {label}{" "}
-        <span className="font-mono tabular-nums text-[#171717]">
+        <span className="font-mono tabular-nums text-[var(--color-fg)]">
           {(ms / 1000).toFixed(1)}s
         </span>
       </div>
@@ -295,11 +336,11 @@ function GeneratingOverlay({ label }: { label: string }) {
 
 function PaneHeader({ title, hint }: { title: string; hint: string }) {
   return (
-    <div className="flex items-center justify-between bg-white px-4 py-2 shadow-[var(--shadow-border)]">
-      <span className="font-mono text-micro font-medium uppercase tracking-tight text-[#171717]">
+    <div className="flex items-center justify-between bg-[var(--color-panel)] px-4 py-2 shadow-[var(--shadow-border)]">
+      <span className="font-mono text-micro font-medium uppercase tracking-tight text-[var(--color-fg)]">
         {title}
       </span>
-      <span className="font-mono text-micro text-[#6e6e6e]">{hint}</span>
+      <span className="font-mono text-micro text-[var(--color-muted-2)]">{hint}</span>
     </div>
   );
 }
@@ -308,26 +349,29 @@ function TabButton({
   active,
   badge,
   onClick,
+  title,
   children,
 }: {
   active: boolean;
   badge?: number;
   onClick: () => void;
+  title?: string;
   children: React.ReactNode;
 }) {
   return (
     <button
       onClick={onClick}
+      title={title}
       className={
         "flex items-center gap-1.5 border-b-2 px-2 py-2.5 text-body font-medium transition-colors " +
         (active
-          ? "border-[#171717] text-[#171717]"
-          : "border-transparent text-[#666666] hover:text-[#171717]")
+          ? "border-[var(--color-fg)] text-[var(--color-fg)]"
+          : "border-transparent text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]")
       }
     >
       {children}
       {badge ? (
-        <span className="rounded-full bg-[#ebf5ff] px-1.5 text-micro font-medium text-[#0068d6]">
+        <span className="rounded-full bg-[var(--color-badge-bg)] px-1.5 text-micro font-medium text-[var(--color-badge-text)]">
           {badge}
         </span>
       ) : null}
@@ -349,17 +393,17 @@ function AiPanel({
   const t = useT();
   if (busy && !result)
     return (
-      <div className="px-4 py-3 text-body text-[#666666]">
+      <div className="px-4 py-3 text-body text-[var(--color-fg-muted)]">
         {t("ai.panel.processing")}
       </div>
     );
   if (error)
     return (
       <div className="px-4 py-3">
-        <p className="text-body text-[#e5484d]">{error}</p>
+        <p className="text-body text-[var(--color-danger)]">{error}</p>
         <button
           onClick={onClear}
-          className="mt-2 text-caption text-[#666666] hover:text-[#171717]"
+          className="mt-2 text-caption text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
         >
           {t("common.clear")}
         </button>
@@ -367,18 +411,18 @@ function AiPanel({
     );
   if (!result)
     return (
-      <div className="px-4 py-3 text-body text-[#666666]">
+      <div className="px-4 py-3 text-body text-[var(--color-fg-muted)]">
         {t("ai.panel.empty")}
       </div>
     );
   return (
     <div className="px-4 py-3">
-      <pre className="whitespace-pre-wrap break-words font-mono text-caption leading-relaxed text-[#171717]">
+      <pre className="whitespace-pre-wrap break-words font-mono text-caption leading-relaxed text-[var(--color-fg)]">
         {result}
       </pre>
       <button
         onClick={onClear}
-        className="mt-2 text-caption text-[#666666] hover:text-[#171717]"
+        className="mt-2 text-caption text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
       >
         {t("common.clear")}
       </button>
@@ -390,14 +434,14 @@ function WarningsPanel({ warnings }: { warnings: string[] }) {
   const t = useT();
   if (warnings.length === 0)
     return (
-      <div className="px-4 py-3 text-body text-[#666666]">
+      <div className="px-4 py-3 text-body text-[var(--color-fg-muted)]">
         {t("warnings.none")}
       </div>
     );
   return (
     <ul className="flex flex-col gap-1.5 px-4 py-3">
       {warnings.map((w, i) => (
-        <li key={i} className="text-caption text-[#b45309]">
+        <li key={i} className="text-caption text-[var(--color-warn)]">
           • {w}
         </li>
       ))}
