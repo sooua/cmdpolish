@@ -3,7 +3,9 @@ import type { AiMessage, AiTask } from "./types";
 /** Strip a single surrounding Markdown code fence from a model response. */
 export function stripFence(text: string): string {
   const trimmed = text.trim();
-  const fence = trimmed.match(/^```[\w-]*\n([\s\S]*?)\n```$/);
+  // Tolerate an info string after the opening fence (e.g. ```bash title=x) and
+  // trailing whitespace after the closing fence.
+  const fence = trimmed.match(/^```[^\n]*\n([\s\S]*?)\n```\s*$/);
   if (fence) return fence[1];
   return trimmed;
 }

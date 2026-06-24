@@ -2,7 +2,7 @@ import type { FormatResult, Language } from "../types";
 import { normalizeHeredocTerminators } from "../format/heredoc";
 import { aiComplete, aiCompleteStream } from "./client";
 import { buildFormatPrompt, stripFence } from "./prompts";
-import type { AiProvider, AiTask } from "./types";
+import type { AiCompleteOptions, AiProvider, AiTask } from "./types";
 
 /**
  * Pick an output-token budget for a reformat. The output is roughly the size of
@@ -12,12 +12,17 @@ import type { AiProvider, AiTask } from "./types";
  * above the model's real limit would 400, so we stay conservative per kind.
  */
 function formatMaxTokens(text: string, provider: AiProvider): number {
-  const estimate = Math.ceil((text.length / 3) * 1.25);
+  // CJK text is ~1 token/char, Latin ~3 chars/token. Estimate per-character so
+  // Chinese-heavy input doesn't under-budget and truncate.
+  const cjk = (text.match(/[㐀-鿿豈-﫿぀-ヿ]/g) ?? []).length;
+  const rest = text.length - cjk;
+  const estimate = Math.ceil((cjk + rest / 3) * 1.3);
   const ceiling = provider.kind === "anthropic" ? 32768 : 8192;
   return Math.min(Math.max(estimate, 4096), ceiling);
 }
 
-export type { AiProvider, AiTask, ProviderKind } from "./types";
+export type { AiProvider, AiTask, ProviderKind, AiErrorKind } from "./types";
+export { AiError } from "./types";
 export {
   PROVIDER_PRESETS,
   presetById,
@@ -61,13 +66,14 @@ export async function aiFormatStream(
   text: string,
   language: Language,
   provider: AiProvider,
-  onText: (partial: string) => void
+  onText: (partial: string) => void,
+  opts: AiCompleteOptions = {}
 ): Promise<FormatResult> {
   const { text: full, truncated } = await aiCompleteStream(
     provider,
     buildFormatPrompt(text, language),
     (_delta, acc) => onText(acc),
-    { maxTokens: formatMaxTokens(text, provider) }
+    { ...opts, maxTokens: formatMaxTokens(text, provider) }
   );
   const out = normalizeHeredocTerminators(stripFence(full));
   return { text: out, language, warnings: [], changed: out !== text, truncated };
@@ -78,8 +84,9 @@ export async function runAiTask(
   task: AiTask,
   text: string,
   language: Language,
-  provider: AiProvider
+  provider: AiProvider,
+  opts: AiCompleteOptions = {}
 ): Promise<string> {
-  const raw = await aiComplete(provider, task.build(text, language));
+  const raw = await aiComplete(provider, task.build(text, language), opts);
   return task.output === "code" ? stripFence(raw) : raw.trim();
 }
