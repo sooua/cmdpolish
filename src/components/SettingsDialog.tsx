@@ -119,7 +119,7 @@ export function SettingsDialog() {
       />
       <div className="animate-modal relative flex max-h-[85vh] w-[460px] max-w-full flex-col overflow-hidden rounded-2xl bg-[var(--color-panel)] shadow-[var(--shadow-pop)]">
         <header className="flex items-center justify-between px-5 py-3.5 shadow-[var(--shadow-border)]">
-          <span className="text-title font-semibold text-[var(--color-fg)]">
+          <span className="font-serif text-title text-[var(--color-fg)]">
             {t("settings.title")}
           </span>
           <button
@@ -506,7 +506,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-2.5">
-      <h3 className="font-mono text-micro uppercase tracking-tight text-[var(--color-muted-2)]">
+      <h3 className="text-micro font-semibold uppercase tracking-[0.06em] text-[var(--color-muted-2)]">
         {title}
       </h3>
       {children}

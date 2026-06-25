@@ -35,7 +35,7 @@ export function ConfirmDialog() {
           )}
           <div className="flex flex-col gap-1">
             {opts.title && (
-              <h2 className="text-title font-semibold text-[var(--color-fg)]">
+              <h2 className="font-serif text-title text-[var(--color-fg)]">
                 {opts.title}
               </h2>
             )}

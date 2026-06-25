@@ -146,7 +146,7 @@ export default function App() {
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[var(--color-primary)]">
             <Terminal size={13} className="text-[var(--color-on-primary)]" />
           </span>
-          <span className="text-body font-semibold tracking-[-0.02em]">
+          <span className="font-serif text-title text-[var(--color-fg)]">
             CmdPolish
           </span>
         </div>
@@ -337,7 +337,7 @@ function GeneratingOverlay({ label }: { label: string }) {
 function PaneHeader({ title, hint }: { title: string; hint: string }) {
   return (
     <div className="flex items-center justify-between bg-[var(--color-panel)] px-4 py-2 shadow-[var(--shadow-border)]">
-      <span className="font-mono text-micro font-medium uppercase tracking-tight text-[var(--color-fg)]">
+      <span className="text-micro font-semibold uppercase tracking-[0.06em] text-[var(--color-fg-secondary)]">
         {title}
       </span>
       <span className="font-mono text-micro text-[var(--color-muted-2)]">{hint}</span>

@@ -79,7 +79,7 @@ export function HistoryDrawer() {
       <aside className="animate-drawer relative flex h-full w-[420px] max-w-[90vw] flex-col bg-[var(--color-panel)] shadow-[var(--shadow-pop)]">
         <header className="flex items-center justify-between px-4 py-3 shadow-[var(--shadow-border)]">
           <div className="flex items-center gap-2">
-            <span className="font-semibold tracking-[-0.01em] text-[var(--color-fg)]">
+            <span className="font-serif text-title text-[var(--color-fg)]">
               {t("history.title")}
             </span>
             <span className="rounded-full bg-[var(--color-surface-2)] px-2 py-0.5 font-mono text-micro uppercase text-[var(--color-fg-muted)] shadow-[var(--shadow-border)]">
