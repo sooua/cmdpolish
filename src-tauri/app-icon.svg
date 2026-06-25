@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- CmdPolish app icon — matches the in-app header chip:
+       terracotta brand square (#c96442) + ivory lucide "Terminal" glyph. -->
+  <rect width="1024" height="1024" rx="235" ry="235" fill="#c96442"/>
+  <g fill="none" stroke="#faf9f5" stroke-width="2.2"
+     stroke-linecap="round" stroke-linejoin="round"
+     transform="translate(512 512) scale(29) translate(-12 -12)">
+    <polyline points="4 17 10 11 4 5"/>
+    <line x1="12" y1="19" x2="20" y2="19"/>
+  </g>
+</svg>
